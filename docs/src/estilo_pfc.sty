@@ -1,0 +1,172 @@
+\ProvidesPackage{estilo_pfc}
+\typeout{Estilo Proyecto Fin de Carrera}
+
+%%
+%% Paquetes a incluir por defecto
+%%
+\RequirePackage{ifthen}
+\RequirePackage{latexsym}
+\RequirePackage[latin1]{inputenc}
+\RequirePackage[spanish]{babel}
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage[dvips]{graphicx}
+\RequirePackage{color}
+\RequirePackage{theorem}
+\RequirePackage{minitoc}
+\RequirePackage{caption2}
+\RequirePackage{setspace}
+\RequirePackage{graphics}
+\RequirePackage{rotate}
+\RequirePackage{epsfig}
+\RequirePackage{wrapfig}
+
+
+%%
+%% Medidas para configurar la hoja
+%%
+
+% Un espacio y medio
+\onehalfspacing
+
+
+% Ojo estos margenes estan falseados, :-) para que me cogiera en 160 hojas
+% lo que hay que hacer ....
+
+%% Horizontal(original): <2.3cm+\hoffset><\oddsidemargin><\textwidth><\marginparsep><\marginparwidth><el resto>
+\setlength{\hoffset}{0mm}
+\setlength{\oddsidemargin}{17mm}
+\setlength{\evensidemargin}{17mm}
+\setlength{\textwidth}{149mm}       % 210-(40+25) = 145
+\setlength{\marginparsep}{2mm}
+\setlength{\marginparwidth}{18mm}   
+
+% Vertical (original): <2.3cm+\voffset><\topmargin><\headheight><\headsep><\textheight><\footskip><el resto>
+\setlength{\voffset}{0mm}
+\setlength{\topmargin}{3mm}
+\setlength{\headheight}{4mm}
+\setlength{\headsep}{8mm}
+\setlength{\textheight}{217mm}      % 297-(40+40) = 217
+\setlength{\footskip}{13mm}         
+
+
+%%
+%% Macros y comandos nuevos
+%%
+\newcommand{\titulo}{Talk verbal para Linux}
+\newcommand{\autor}{Riguera López, José}
+\newcommand{\tutor}{Yáñez Izquierdo, Antonio}
+\newcommand{\software}{\textbf{Asubío}}
+
+
+\newsavebox{\savepar}
+\newenvironment{boxit}{\begin{lrbox}{\savepar}
+	\begin{minipage}[b]{11cm}}
+	{\end{minipage}\end{lrbox}\fbox{\usebox{\savepar}}}
+
+
+%%
+%% Hace que un bloque de texto comience en una pagina a la derecha. Si hay que
+%% meter una página en blanco le quita el estilo
+%%
+\newcommand{\nuevoParrafo}
+{
+  %impar
+  \ifodd \c@page
+    \clearpage
+  \else
+    \newpage
+    \thispagestyle{empty}
+    $\ $
+    \clearpage
+    \thispagestyle{myheadings}
+  \fi
+}
+
+\newcommand{\terminaPar}
+{
+  %impar
+  \ifodd \c@page
+    \newpage
+    \thispagestyle{empty}
+    $\ $
+    \clearpage
+    \thispagestyle{myheadings}
+  \else
+    \clearpage
+  \fi
+}
+
+%%
+%% Hacer que cada capitulo comience en pagina impar
+%%
+\newcommand{\capitulo}[1]
+{
+  \nuevoParrafo
+  \chapter{#1}
+}
+
+%%
+%% Realiza de forma automatica el encabezamiento de hojas. Para ello hay que
+%% modificar algunos comandos
+%%
+\newcommand{\marcaDerecha}{}
+\newcommand{\marcaIzquierda}{}
+\newcommand{\marcaSeccion}{}
+
+\renewcommand{\chaptermark}[1]
+{
+  \renewcommand{\marcaIzquierda}{\@chapapp\ \thechapter. #1 \hfill \marcaSeccion}
+  \renewcommand{\marcaDerecha}{\@chapapp\ \thechapter. #1 \hfill \marcaSeccion}
+}
+
+\renewcommand{\sectionmark}[1]
+{
+  \renewcommand{\marcaDerecha}{#1}
+}
+
+\renewcommand{\sectionmark}[1]
+{
+  \renewcommand{\marcaSeccion}{#1}
+}
+
+
+\makeatletter
+\renewcommand{\ps@myheadings}
+{
+  \renewcommand{\@oddhead}
+  {
+    \parbox{\textwidth}
+    {
+      \textsf{\marcaDerecha}\\[-5pt]
+      \rule[1pt]{\textwidth}{1pt}\\
+    }
+  }
+  \renewcommand{\@evenhead}
+  {
+    \parbox{\textwidth}
+    {
+      \textsf{\marcaIzquierda}\\[-5pt]
+      \rule[1pt]{\textwidth}{1pt}\\
+    }
+  }
+  \renewcommand{\@oddfoot}
+  {
+    \parbox{\textwidth}
+    {
+	    \rule[1pt]{\textwidth}{.5pt}\\
+        \textsf{\titulo}\hfill\textsf{\thepage}\\[5pt]
+    }
+  }
+  \renewcommand{\@evenfoot}
+  {
+    \parbox{\textwidth}
+    {
+    	\rule[1pt]{\textwidth}{.5pt}\\
+        \textsf{\titulo}\hfill\textsf{\thepage}\\[5pt]
+    }
+  }
+}
+\makeatother
+\pagestyle{myheadings}
+

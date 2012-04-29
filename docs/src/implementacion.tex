@@ -1,0 +1,1659 @@
+\capitulo{Implementación}
+\label{chp:implementacion}
+\minitoc
+\newpage
+
+Como ya se comentó anteriormente, la implementación del sistema se realizó en C, porque es un lenguaje que genera ejecutables relativamente rápidos, lo cual es especialmente interesante en dominios como éste, donde hay que manejar datos en tiempo real. \\
+
+Además, el sistema en el que se implementó el diseño ha sido \emph{Linux}, pero, con las herramientas y bibliotecas utilizadas, ambos programas deberían compilar, casi sin cambios, en cualquier otro sistema que cumpla el estándar \emph{POSIX}, incluso en sistemas \emph{MS Windows} contruyendo un plugin para acceder al audio y cambiando el API de Sockets por el WinSock. Esto sería realmente difícil de conseguir realizando la implementación sobre un sistema cerrado, donde a veces resulta difícil saber si se están utilizando herramientas o librerías existentes sólo para ese sistema. \\
+
+En el presente capítulo se mostrarán fragmentos de código fuente del software implementado, comentando los aspectos más significativos, de otro modo, resultaría imposible comentar en esta memoria las más de 22000 líneas de código fuente del software.
+
+\section{Organización en directorios}
+
+Todo el código fuente está organizado de tal forma que, cada directorio corresponde a un subsistema, excepto, todo el tratamiento de sonido que está en el directorio principal. El siguiente árbol muestra la estructura:
+
+\begin{verbatim}
+.
+|-- codec_plugin
+|   |-- adpcm
+|   |   `-- adpcm
+|   |-- gsm
+|   |   `-- gsm-1.0-pl10
+|   `-- sources
+|-- conf
+|-- crypt
+|-- effect_plugin
+|   `-- echo
+|-- gui_gtk
+|-- inout_plugin
+|   `-- oss
+|-- net
+|-- pixmaps
+|-- rtp
+`-- ssip_proxy
+\end{verbatim}
+
+Además esta estructura facilita la implementación de nuevos plugins, ya que para implementar uno nuevo, basta con crear un directorio dentro del tipo de plugin, modificar el Makefile para indicar el nuevo directorio y crear el código o algoritmo.
+
+\section{Algoritmos y arquitectura}
+
+No hubo que crear algoritmos complejos, ya que la mayoría del comportamiento queda definido por los RFC's. Sin embargo, hay ciertos subsistemas que implementan algoritmos simples pero interesantes, tales como: {\it buffer de audio}, {\it procesador de audio}, etc. que serán analizados posteriormente en la sección correspondiente. \\
+
+Lo más llamativo de este proyecto es su arquitectura, con un alto grado de concurrencia -gracias a los {\it threads} o procesos ligeros-. El programa en reposo, sin ninguna sesión abierta, dispone de dos threads concurrentes: uno que controla los eventos de la GUI, interfaz gráfica, (el bucle {\it gtk\_main()}) y otro que espera las posibles llamadas en un puerto SSIP. Cada vez que se crea una sesión con un usuario remoto, se generan tres nuevos threads que gestionan todo el proceso de envío, recepción y control del subsistema RTP/RTCP. Además el subsistema de procesamiento de audio, se ejecuta cuando hay al menos una sesión activa, para proveer de frames de audio a la/s sesión/es. También se crea otro thread temporal, cada vez que se realiza una llamada, que se encarga de gestionar toda la negociación SSIP, una vez que el proceso de llamada finaliza, el thread desaparece. En general, una fórmula para calcular el número de threads en un instante es:
+\[
+Threads = \left\{ \begin{array}{ll}
+	2 & \mbox{si $N_{s} = 0$} \\
+	6 & \mbox{si $N_{s} = 1$} \\
+	(N_{s} \cdot 3) + 3 & \mbox{en otro caso}
+	\end{array}
+\right.
+\]
+donde $N_{s}$ es el número de sesiones activas. Si además, en ese instante, se está negociando una llamada desde el programa, habrá que sumar $1$ al número de threads. \\
+
+Esto en cuanto a la arquitectura de \software . La arquitectura del \textbf{Proxy SSIP}, también presenta un alto grado de concurrencia, pero en este caso, en forma de procesos, no threads. Se implementó de ese modo, porque, a pesar del mayor coste computacional de crear un proceso en lugar de un thread, se necesita independencia y seguridad. Cada vez que se atiende una negociación SSIP en el proxy, crea un proceso hijo que es totalmente independiente, si al hijo le ocurre algo, lo más grave que puede ocurrir es que se quede el proceso {\it zombie} en el sistema. Además un administrador puede {\it matar} procesos que se queden colgados o que lleven varios minutos negociando la sesión, etc., es decir, permite un mayor control del proxy por parte del administrador.
+
+\section{Código compartido}
+
+En esta sección se analizará la implementación del código compartido tanto por \software \ como por \textbf{Proxy SSIP}.
+
+\subsection{Fichero de configuración}
+
+El fichero {\it configfile.h} define este TDA como:
+
+\begin{lstlisting}[emph={write_mutex}, emphstyle=\color{blue}]
+
+struct _ConfigLine
+{
+    gchar *key;
+    gchar *value;
+};
+typedef struct _ConfigLine ConfigLine;
+
+struct _ConfigSection
+{
+    gchar *name;
+    GList *lines;
+};
+typedef struct _ConfigSection ConfigSection;
+
+struct _ConfigFile
+{
+    GList *sections;
+    GMutex *write_mutex;  @\label{mutex_configfile}@
+};
+typedef struct _ConfigFile ConfigFile;
+
+ConfigFile *cfgf_new (void);
+
+ConfigFile *cfgf_open_file (gchar *filename, GError **error);
+gboolean 
+cfgf_write_file (ConfigFile * cfg, gchar * filename, GError **error);
+
+void cfgf_free (ConfigFile * cfg);
+
+gboolean 
+cfgf_read_int (ConfigFile *cfg, gchar *section, gchar *key, gint *value);
+gboolean 
+cfgf_read_string (ConfigFile *cfg, gchar *section, gchar *key, gchar **value);
+gboolean 
+cfgf_read_float (ConfigFile *cfg, gchar *section, gchar *key, gfloat *value);
+
+void 
+cfgf_write_int (ConfigFile *cfg, gchar *section, gchar *key, gint value);
+void 
+cfgf_write_string (ConfigFile *cfg, gchar *section, gchar *key, gchar *value);
+void 
+cfgf_write_float (ConfigFile *cfg, gchar *section, gchar *key, gfloat value);
+
+gboolean cfgf_remove_key (ConfigFile *cfg, gchar *section, gchar *key);
+\end{lstlisting}
+
+Como se puede observar, el TDA {\it configfile} dispone de todas las funciones para acceder transparentemente al fichero de configuración del programa \software . Este mismo TDA es el que se usa en \textbf{Proxy SSIP} como fichero de configuración y también se usa para almacenar los usuarios activos, es decir de BD. \\
+
+El semáforo {\it write\_mutex} -línea \ref{mutex_configfile}- es el que permite que toda la estructura del TDA, pueda ser accedida concurrentemente por dos threads. En el siguiente listado se puede apreciar tal como se solucionó esa situación y como se usan las listas enlazadas -cada lista representa una sección- para almacenar y acceder a todos los datos.
+
+\begin{lstlisting}[emph={write_mutex}, emph={[2]g_mutex_unlock, g_mutex_lock}, emphstyle=\color{blue}, emphstyle={[2]\color{red}}]
+
+gboolean 
+cfgf_read_string (ConfigFile *cfg, gchar *section, gchar *key, gchar **value)
+{
+    ConfigSection *sect;
+    ConfigLine *line;
+
+    g_mutex_lock(cfg->write_mutex);
+    if (!(sect = _find_section(cfg, section))) {
+		g_mutex_unlock(cfg->write_mutex);
+		return FALSE;
+    }
+    if (!(line = _find_string(sect, key))) {
+		g_mutex_unlock(cfg->write_mutex);
+		return FALSE;
+    }
+    *value = g_strdup(line->value);
+    g_mutex_unlock(cfg->write_mutex);
+    return TRUE;
+}
+\end{lstlisting}
+
+\subsection{TDA's de acceso a red}
+
+Este TDA, se parece a un objeto, por esa razón en el capítulo de diseño se representó como tal. Ahora se puede apreciar como está definido un {\it Socket\_tcp}. La estructura {\it Socket\_udp} es idéntica, sólo se diferencia en las funciones que implementan. A continuación se muestra parte del fichero {\it tcp.h}, ya que este TDA es más completo que su correspondiente en UDP.
+
+\begin{lstlisting}
+
+struct _Socket_tcp
+{
+    gint            mode;   /* IPv4 or IPv6 */
+    gchar           *addr;
+    guint16         rx_port;
+    guint16         tx_port;
+    ttl_t           ttl;
+    fd_t            fd;
+    struct in_addr  addr4;
+#ifdef TCP_HAVE_IPv6
+    struct in6_addr addr6;
+#endif 
+};
+
+typedef struct _Socket_tcp Socket_tcp;
+\end{lstlisting}
+
+Como se puede observar, el uso de comandos del prepocesador de C (compilación condicional) permite que todo el software se pueda compilar en máquinas que todavía no soporten IPv6. También se puede apreciar como se logró un nivel de abstracción por encima del API de {\it Sockets}, que permite el empleo de simúltaneo de IPv6 e IPv4. A continuación se muestra todo el API de {\it Socket\_tcp}:
+
+\begin{lstlisting}
+
+Socket_tcp 
+*tcp_init (const gchar *addr, const gchar *iface, guint16 rx_port, 
+           guint16 tx_port, gint ttl, GError **error);
+void tcp_exit (Socket_tcp *s, GError **error);
+gboolean 
+tcp_connect (Socket_tcp *s, const gchar *addr, guint16 port, GError **error);
+Socket_tcp *tcp_accept (Socket_tcp *s, GError **error);
+
+gint tcp_send (Socket_tcp *s, gpointer buffer, gint buflen, gint flags);
+inline gint tcp_recv (Socket_tcp *s, gpointer buffer, gint buflen, gint flags);
+
+gchar *tcp_host_addr (Socket_tcp *s, GError **error);
+
+gint tcp_fd (Socket_tcp *s);
+guint16 tcp_txport (Socket_tcp *s);
+guint16 tcp_rxport (Socket_tcp *s);
+gchar *tcp_addr (Socket_tcp *s);
+\end{lstlisting}
+
+Seguidamente se muestra una función típida del API de sockets, pero implementada con la abstracción entre IPv6 e IPv4:
+
+\begin{lstlisting}
+
+Socket_tcp *tcp_accept (Socket_tcp *s, GError **error)
+{
+    struct sockaddr_in con4;
+    gint fd;
+    gint addrlen;
+    gchar buf[100];
+    Socket_tcp *st;
+#ifdef TCP_HAVE_IPv6
+    struct sockaddr_in6 con6;
+#endif
+
+    if (s == NULL) {
+		g_set_error(error, TCP_ERROR, TCP_ERROR_NULL, "NULL");
+		g_printerr("[TCP] tcp_accept: Socket_tcp = NULL\n");
+		return NULL;
+	}
+    switch(s->mode) {
+    case IPv4 :
+        addrlen = sizeof(struct sockaddr_in);
+		if (-1 == (fd = accept(s->fd, (struct sockaddr *) &con4, &addrlen))) {
+		    g_set_error(error, TCP_ERROR, TCP_ERROR_ERRNO, "%s", g_strerror(errno));
+		    g_printerr("[TCP] tcp_accept: %s\n", (*error)->message);
+		    return NULL;
+		}
+		st = (Socket_tcp *) g_try_malloc(sizeof(Socket_tcp));
+		g_return_val_if_fail(st != NULL, NULL);
+		st->mode = IPv4;
+		memset(buf, 0, sizeof(gchar) * 100);
+        inet_ntop(AF_INET, &con4.sin_addr, buf, sizeof(gchar) * 100);
+		st->addr = g_strdup(buf);
+		st->rx_port = s->rx_port;
+		st->tx_port = con4.sin_port;
+		st->ttl = s->ttl;
+		st->fd = fd;
+	break;
+#ifdef TCP_HAVE_IPv6
+    case IPv6 :
+        addrlen = sizeof(struct sockaddr_in6);
+		if (-1 == (fd = accept(s->fd, (struct sockaddr *) &con6, &addrlen))) {
+		    g_set_error(error, TCP_ERROR, TCP_ERROR_ERRNO, "%s", g_strerror(errno));
+		    g_printerr("[TCP] tcp_accept: %s\n", (*error)->message);
+		    return NULL;
+		}
+		st = (Socket_tcp *) g_try_malloc(sizeof(Socket_tcp));
+		g_return_val_if_fail(st != NULL, NULL);
+		st->mode = IPv6;
+		memset(buf, 0, sizeof(gchar) * 100);
+        inet_ntop(AF_INET6, &con6.sin6_addr, buf, sizeof(gchar) * 100);
+		st->addr = g_strdup(buf);
+		st->rx_port = con6.sin6_port;
+		st->tx_port = s->tx_port;
+		st->ttl = s->ttl;
+		st->fd = fd;
+		break;
+#endif
+    default :
+		g_set_error(error, TCP_ERROR, TCP_ERROR_NOTIMPLEMENTED, "NULL");
+		g_printerr("[TCP] tcp_accept: Socket type must be IPv4 or IPv6\n");
+		return NULL;
+    }
+    return st;
+}
+\end{lstlisting}
+
+No todas las funciones fueron implementadas de esta forma con {\it switch/case}, la gran mayoría, tienen dos ``sub-funciones'', una para IPv4 y otra para IPv6, pareciéndose más a la metodología OO. \\
+
+Como se puede apreciar, añadir el soporte para IPv6 ha sido trivial, ya que, en la mayoría de los casos basta con cambiar el parámetro {\it AF\_INET} por {\it AF\_INET6} en las funciones de sockets. El soporte para redes multicast se implementó de esta forma:
+
+\begin{lstlisting}
+
+    if (IN6_IS_ADDR_MULTICAST(&(s->addr6)))
+    	{
+		guint loop = 1;
+		struct ipv6_mreq  imr;
+		imr.ipv6mr_multiaddr = s->addr6;
+		imr.ipv6mr_interface = 0;
+		
+	if (setsockopt(s->fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, 
+        (char *) &imr, sizeof(struct ipv6_mreq)) != 0) {
+		    g_set_error(error, TCP_ERROR, TCP_ERROR_ERRNO, "%s", g_strerror(errno));
+		    g_printerr("[TCP] tcp_init6: %s\n", (*error)->message);
+		    g_free(s);
+		    return NULL;
+	}
+	if (setsockopt(s->fd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, 
+        (char *) &loop, sizeof(loop)) != 0)	{
+		    g_set_error(error, TCP_ERROR, TCP_ERROR_ERRNO, "%s", g_strerror(errno));
+		    g_printerr("[TCP] tcp_init6: %s\n", (*error)->message);
+		    g_free(s);
+		    return NULL;
+	}
+	if (setsockopt(s->fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, 
+        (char *) &ttl, sizeof(ttl)) != 0) {
+		    g_set_error(error, TCP_ERROR, TCP_ERROR_ERRNO, "%s", g_strerror(errno));
+		    g_printerr("[TCP] tcp_init6: %s\n", (*error)->message);
+		    g_free(s);
+		    return NULL;
+	}
+\end{lstlisting}
+
+En el caso de IPv4, el procedimiento es similar.
+
+\subsection{Negociación \emph{SSIP} y \emph{NOTIFY}}
+
+En este apartado se comentarán algunos aspectos en la implementación de los protocolos SSIP y NOTIFY. Hay que tener en cuenta que las verdaderas intenciones eran usar el protocolo SIP en lugar de SSIP (Simple SIP). Por otro lado, la implementación de estos protocolos no supuso ningún problema, basta con seguir los requisitos especificados en el capítulo de diseño.
+
+\begin{lstlisting}
+/* ...  ssip.h */
+
+#define SSIP_MANAGE_DEFAULT_PORT  10000
+#define SSIP_NOTIFY_DEFAULT_PORT  20000
+#define PKT_USERNAME_LEN    16
+#define PKT_USERDES_LEN    256
+#define PKT_USERDATA_LEN   512
+#define PKT_HOSTNAME_LEN   256
+
+// SSIP  (Simple SIP Protocol - protocolo simple de inicio de session)
+
+struct _SsipPkt
+{
+    gchar to_user[PKT_USERNAME_LEN];
+    gchar to_host[PKT_HOSTNAME_LEN];
+    guint16 to_port;
+    gchar from_user[PKT_USERNAME_LEN];
+    gchar from_host[PKT_HOSTNAME_LEN];
+    guint16 from_port;
+    gint32 type;
+    gint32 data_len;
+    gchar data[PKT_USERDATA_LEN];
+};
+typedef struct _SsipPkt SsipPkt;
+
+/* ... */
+
+// SNP (Simple Notify Protocol - protocolo de notificacion simple) alias NOTIFY
+
+struct _NtfPkt 
+{
+    gint ipmode;
+    gchar from_user[PKT_USERNAME_LEN];
+    struct in_addr from_addr4;
+#ifdef NET_HAVE_IPv6
+    struct in6_addr from_addr6;
+#endif
+    guint16 from_port;
+    gchar to_user[PKT_USERNAME_LEN];
+    struct in_addr to_addr4;
+#ifdef NET_HAVE_IPv6
+    struct in6_addr to_addr6;
+#endif
+    guint16 to_port;
+    gchar data[PKT_USERDES_LEN];
+    gint32 type;
+};
+typedef struct _NtfPkt NtfPkt;
+\end{lstlisting}
+
+Sin embargo, lo más importante a la hora de diseñar un protocolo -después de lograr que cumpla su cometido- es su robusted. Ese punto lo cumplen ambos protocolos, se logró implementarlos de forma simple y robusta ya que admiten ser usados conjuntamente en redes IPv4 e IPv6. La robusted también viene dada en la implementación. Una implementación deficiente echaría al trate con un buen diseño. A continuación se muestran algunas funciones que añaden seguridad a la implementación:
+
+\begin{lstlisting}
+/* ... ssip_neg.c */
+
+static gboolean time_expired_mtime (Socket_tcp *skt, guint mt)
+{
+    fd_set rfds;
+    struct timeval tv;
+    gint valret, fd;
+
+    fd = tcp_fd(skt);
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
+    tv.tv_sec = 0;
+    tv.tv_usec = mt;
+    valret = select(fd+1, &rfds, NULL, NULL, &tv);
+    if (valret == -1) return FALSE;
+    if (FD_ISSET(fd, &rfds)) return TRUE;
+    return FALSE;
+}
+\end{lstlisting}
+
+En el listado anterior, se muestra el uso de \emph{select} para lograr que, en la lectura de datos de un socket, un proceso no se quede bloqueado indefinidamente. Esta función retorna \emph{TRUE} si hay datos listos para leer en el socket y \emph{FALSE} si ha transcurrido el tiempo especificado en $\mu s$ y no se han recibido datos. Esta función también se emplea para que el usuario pueda interrumpir una negociación cuando desee: se introduce en un bucle con una variable que controle cuando el usuario desea salir. \\
+
+En el siguiente listado se aprecian las comprobaciones de seguridad que se realizan cada vez que se recibe un paquete, para evitar desbordamientos de buffer, incoherencias en el tamaño de los campos, etc.
+
+\begin{lstlisting}
+/* ... ssip_neg.c */
+
+len = strlen(from_user) + 1;
+if (PKT_USERNAME_LEN <= len) len = PKT_USERNAME_LEN;
+g_strlcpy(pkt->from_user, from_user, len);
+len = strlen(from_host) + 1;
+if (PKT_HOSTNAME_LEN <= len) len = PKT_HOSTNAME_LEN;
+g_strlcpy(pkt->from_host, from_host, len);
+pkt->from_port = g_htons(from_port);
+
+len = strlen(to_user) + 1;
+if (PKT_USERNAME_LEN <= len) len = PKT_USERNAME_LEN;
+g_strlcpy(pkt->to_user, to_user, len);
+len = strlen(to_host) + 1;
+if (PKT_HOSTNAME_LEN <= len) len = PKT_HOSTNAME_LEN;
+g_strlcpy(pkt->to_host, to_host, len);
+pkt->to_port = g_htons(to_port);
+
+/* ... */
+\end{lstlisting}
+
+\section{Plugins}
+
+En esta subsección se va a comentar las características de las funciones que deben tener implementadas los plugins para que funcionen correctamente.
+
+\subsection{\emph{InOut} Plugin}
+
+El módulo debe tener implementada una función de tipo {\it LFunctionPlugin\_InOut} con nombre {\it PLUGIN\_INOUT\_STRUCT} (definida en la línea \ref{plugin_inout}) y devolver un puntero a una estructura {\it Plugin\_InOut} para poder ser cargado y considerado como tal.
+
+\begin{lstlisting}[emph={get_Plugin_InOut_struct}, emphstyle={\color{red}}]
+
+#define PLUGIN_INOUT_STRUCT "get_Plugin_InOut_struct"
+
+struct _Plugin_InOut
+{
+    void *handle;
+    gchar *name;
+    gchar *filename;
+    gchar *description;
+    gchar *license;
+
+    gint *is_usable;
+    gint *is_selected;
+
+    gint (*configure) (void);
+    gint (*about) (void);
+    gint (*init) (ConfigFile *cfgfile, GError **error);
+    gint (*cleanup) (void);
+
+    gint (*open_in) (gint open_flags, AFormat format, gint channels, 
+                     gint rate, gint fragmet, AInfo *info, GError **error);
+    gint (*open_out) (gint open_flags, AFormat format, gint channels, 
+                      gint rate, gint fragmet, AInfo *info, GError **error);
+    gint (*close_out) (void);
+    gint (*close_in) (void);
+
+    gint (*read) (gpointer buffer, gint l);
+    gint (*write) (gpointer buffer, gint l);
+
+    gint (*get_in_volume) (gint *l_vol, gint *r_vol);
+    gint (*set_in_volume) (gint l_vol, gint r_vol);
+    gint (*get_out_volume) (gint *l_vol, gint *r_vol);
+    gint (*set_out_volume) (gint l_vol, gint r_vol);
+
+    gint (*flush) (gint time);
+    ACaps *(*get_caps) (void);
+};
+typedef struct _Plugin_InOut Plugin_InOut;
+
+typedef Plugin_InOut *(*LFunctionPlugin_InOut) (void);  @\label{plugin_inout}@
+\end{lstlisting}
+
+Esta interfaz define como son las funciones que debe tener la estructura que exportará el plugin cargado. No todas las funciones son oligatorias, a continuación se van a comentar sólo los símbolos que obligatoriamente debe exportar el módulo para que sea considerado válido:
+
+{ \renewcommand{\labelitemi}{}
+\begin{itemize}
+    \item \textbf{*name}: nombre del plugin.
+	\item \textbf{*filename}: nombre del fichero compilado.
+	\item \textbf{*description}: breve descripción del plugin.
+    \item \textbf{*license}: licencia bajo la cual se distribuye el plugin.
+    \item \textbf{(*init)}: tras ser cargado el plugin, es la primera función que será llamada desde el programa principal. Recibe como parámetro un puntero a la configuración, retorna 1 si ha tenido exito, en caso contrario retorna un codigo negativo de error y rellena la estructura GError. Ésta es la primera función en ser llamada.
+    \item \textbf{(*cleanup)}: esta función indica que el plugin puede liberar su memoria reservada, ya no va a ser usado.
+    \item \textbf{(*open\_in)}: función que inicializa el dispositivo de entrada de audio al programa con los parámetros especificados. Si es imposible establecer esos parámetros se devuelve un código negativo y se rellena la estructura GError con los motivos.
+    \item \textbf{(*open\_out)}: indéntica a la anterior, sólo que debe abrir el dispositivo de audio para salida. No existe un orden establecido para la llamada de {\it open\_out} y {\it open\_in}.
+	\item \textbf{(*close\_out)}: cierra el dispositivo de salida de audio, abierto con {\it open\_out}.
+    \item \textbf{(*close\_in)}: cierra el dispositivo abierto con {\it open\_in}.
+	\item \textbf{(*read)}: lee el audio del dispositivo de entrada.
+    \item \textbf{(*write)}: escribe el audio al dispositivo de salida.
+    \item \textbf{(*get\_caps)}: obtiene las capacidades del dispositivo de audio.
+\end{itemize} }
+
+Como se puede apreciar, no es necesario que el dispositivo de audio disponga de controles de volumen (mixer). Si el dispositivo soporta full-duplex (se comprueba con {\it (*get\_caps)} las llamadas de lectura y escritura de audio pueden ser concurrentes. También hay que destacar que este plugin almacena su estado internamente, usando variables {\it static}, con lo que, a diferencia de otros plugins, no es necesario que el programa principal conozca algo acerca de sus estados internos. Esto provoca que sólo pueda existir sólo una ``instancia'' de este plugin en el sistema. \\
+
+Para la implementación práctica de este plugin se usó el sistema OSS, ya que se usa mayoritariamente como módulo de acceso a la tarjeta de sonido en el kernel de Linux. Además soporta perfectamente full-duplex, condición necesaria para la mayoría de usuarios que sólo disponen de una tarjeta de sonido en su PC.
+
+\subsection{\emph{Effect} Plugin}
+
+Definición de la interfaz que deben cumplir los plugins de effectos de sonido:
+
+\begin{lstlisting}[emph={LFunctionPlugin_Effect}, emphstyle=\color{red}, emph={[2]get_Plugin_Effect_struct}, emphstyle={[2]\color{green}}]
+
+enum _TPCall
+{
+    AUDIO_CALL_NONE = 0,
+    AUDIO_CALL_IN = 1 << 0,
+    AUDIO_CALL_OUT = 1 << 1,
+};
+typedef enum _TPCall TPCall;
+
+#define PLUGIN_EFFECT_STRUCT "get_Plugin_Effect_struct"
+
+struct _Plugin_Effect
+{
+    void *handle;
+    gchar *name;
+    gchar *filename;
+    gchar *description;
+    gchar *license;
+
+    gint *is_usable;
+    gint *is_selected;
+
+    gpointer (*init) (ConfigFile *cfgfile, AudioProperties *aprts, GError **error);
+    gint (*cleanup) (gpointer status);
+
+    gint (*configure) (gpointer status);
+    gint (*about) (void);
+
+    gint (*pefunction) (gpointer status, gpointer d, gint *length, TPCall type);
+};
+typedef struct _Plugin_Effect Plugin_Effect;
+
+typedef Plugin_Effect *(*LFunctionPlugin_Effect) (void);
+\end{lstlisting}
+
+El plugin debe tener definida una función {\it PLUGIN\_EFFECT\_STRUCT} de tipo {\it LFunctionPlugin\_Effect\_InOut} que devolverá un puntero a una estructura {\it Plugin\_Effect} para poder ser cargado. Al igual que en el plugin anterior, se detallarán sólo los símbolos mínimos que debe exportar.
+
+{ \renewcommand{\labelitemi}{}
+\begin{itemize}
+    \item \textbf{*name}: nombre del plugin.
+	\item \textbf{*filename}: nombre del fichero compilado.
+	\item \textbf{*description}: breve descripción del plugin.
+    \item \textbf{*license}: licencia bajo la cual se distribuye el plugin.
+    \item \textbf{(*init)}: tras ser cargado el plugin, es la primera función que será llamada desde el programa principal. Recibe como parámetro un puntero a la configuración y las propiedades del audio que va recibir, retorna un puntero a \emph{void} (una estructura desconocida, su estado interno) si ha tenido éxito, en caso contrario debe retornar un NULL y rellenar la estructura GError. Ésta es la primera función del plugin en ser llamada.
+    \item \textbf{(*cleanup)}: esta función indica que el plugin puede liberar su memoria reservada, ya no va a ser usado.
+    \item \textbf{(*pefunction)}: función de tratamiento del audio. El primer parámetro que recibe es su estado interno, el segundo es un puntero a un buffer de audio -que puede ser modificado-, el tercero, es el tamaño del buffer de audio y el último, de tipo \emph{TPCall} indica de donde procede el audio del buffer, si es audio de entrada valdrá {\it AUDIO\_CALL\_IN} y para el audio de salida, {\it AUDIO\_CALL\_OUT}. La función debe tener capacidad de decidir qué hacer en cada caso.
+\end{itemize} }
+
+Hay dos consideraciones a tener en cuenta: 
+\begin{enumerate}
+	\item los frames de audio que recibe la función no siempre tienen la misma separación temporal, es decir, pueden llegar varios seguidos, dependiendo de la congestión de la red, etc.
+  	\item a este plugin van a estar accediendo concurrentemente dos threads -uno de tratamiento del audio de entrada ({\it TPCall = AUDIO\_CALL\_IN}) y otro de salida ({\it TPCall = AUDIO\_CALL\_OUT})-, cada uno almacenará un estado diferente, esto significa que no es recomendable usar variables \emph{static} en \emph{(*pefunction)}.
+\end{enumerate}
+
+Como implementación práctica de este plugin se codificó una librería de eco: ``libecho.so''. Simplemente añade un efecto de eco al audio. El algoritmo de eco se basa en sumar el frame de audio actual con el anterior pero reduciendo el volumen del anterior, para que no degrade seriamente el actual. Jugando con el volumen de mezcla, con retardos y con otros frames anteriores se pueden lograr efectos impresionantes y de esos parámetros sale su configuración.
+
+\subsection{\emph{Codec} Plugin e implementación OO de herencia}
+
+A continuación se muestra la definición del API para el plugin de compresión-descompresión de audio:
+
+\begin{lstlisting}[caption={API del \emph{Codec} Plugin}, label=api_plugin_codec]
+
+enum _CodecMode
+{
+    CODEC_NONE = 0,
+    CODEC_ENCODE = 1 << 0,
+    CODEC_DECODE = 1 << 1,
+};
+typedef enum _CodecMode CodecMode;
+
+#define PLUGIN_CODEC_STRUCT "get_Plugin_Codec_struct"
+
+struct _Plugin_Codec
+{
+    void *handle;
+    gchar *name;
+    gchar *filename;
+    gchar *description;
+    gchar *license;
+    gint uncompressed_fr_size;
+    gint compressed_fr_size;
+    gint rate;
+    gint bw;
+    gint payload;
+    gint audio_ms;
+    gint *is_usable;
+    gint *is_selected;
+    struct _Codec *(*constructor) (void);
+};
+typedef struct _Plugin_Codec Plugin_Codec;
+
+typedef Plugin_Codec *(*LFunctionPlugin_Codec) (void);
+\end{lstlisting}
+
+Es importante recordar, que el diseño de este plugin es diferente a los anteriores. En este caso, se ha implementado un sistema de OO con herencia. Cada plugin de este tipo es una \emph{especialización} de la clase \emph{Codec}, la clase de la que heredan estos métodos:
+
+\begin{lstlisting}[caption={Métodos que se especializarán en las subclases}, label=herencia_codec]
+
+struct _Codec
+{
+    gboolean (*_init) (struct _Codec *codec, AudioProperties *ap, 
+             ConfigFile *config, CodecMode mode, GError **error);
+    gboolean (*_getinfo) (struct _Codec *codec, Plugin_Codec *info);
+
+    gint (*_encode) (struct _Codec *codec, gpointer frame, gpointer data);
+    gint (*_decode) (struct _Codec *codec, gpointer data, gpointer frame);
+
+    gint (*_about) (struct _Codec *codec);
+    gint (*_configure) (struct _Codec *codec);
+    gboolean (*_destroy) (struct _Codec *codec);
+};
+typedef struct _Codec Codec;
+
+inline gboolean codec_init (Codec *codec, AudioProperties *ap, 
+                            ConfigFile *config, CodecMode mode, GError **error);
+inline gboolean codec_getinfo (Codec *codec, Plugin_Codec *info);
+inline gint codec_encode (Codec *codec, gpointer frame, gpointer data);
+inline gint codec_decode (Codec *codec, gpointer data, gpointer frame);
+inline gint codec_about (Codec *codec);
+inline gint codec_configure (Codec *codec);
+inline gboolean codec_destroy (Codec *codec);
+
+inline gboolean codec_is_usable (Plugin_Codec *codec, double bandwidth);
+\end{lstlisting}
+
+Todos los métodos de la clase \emph{Codec} se implementan de esta forma:
+
+\begin{lstlisting}[caption={Implementación de los métodos del listado anterior}, label=imple_herencia_codec]
+
+#include "codec.h"
+
+inline gboolean 
+codec_init (Codec *codec, AudioProperties *ap, 
+            ConfigFile *config, CodecMode mode, GError **error)
+{
+    GError *tmp_error = NULL;
+    gboolean val;
+
+    val = codec->_init(codec, ap, config, mode, &tmp_error);
+    if (tmp_error != NULL) {
+		g_propagate_error(error, tmp_error);
+		return FALSE;
+    }
+    return val;
+}
+
+inline gboolean codec_getinfo (Codec *codec, Plugin_Codec *info)
+{
+    return codec->_getinfo(codec, info);
+}
+
+inline gint codec_encode (Codec *codec, gpointer frame, gpointer data)
+{
+    return codec->_encode(codec, frame, data);
+}
+
+inline gint codec_decode (Codec *codec, gpointer data, gpointer frame)
+{
+    return codec->_decode(codec, data, frame);
+}
+
+inline gint codec_about (Codec *codec)
+{
+    return codec->_about(codec);
+}
+
+inline gint codec_configure (Codec *codec)
+{
+    return codec->_configure(codec);
+}
+
+inline gboolean codec_destroy (Codec *codec)
+{
+    return codec->_destroy(codec);
+}
+\end{lstlisting}
+
+De forma que, a la hora de implementar un plugin en concreto, se procede de esta forma:
+
+\begin{lstlisting}[caption={Fragmento de implementación del plugin \emph{ADPCM}, libadpcm.so}, label=plu_adpcm]
+
+struct _ADPCMCodec
+{
+    Codec codec_class;  /* codec heredado, siempre en primer lugar */
+    CodecMode mode;     /* para luego poder hacer un casting       */
+    Adpcm_State adpcm_encode_status;
+    gint adpcm_encode_len;
+    Adpcm_State adpcm_decode_status;
+    gint adpcm_decode_len;
+};
+typedef struct _ADPCMCodec ADPCMCodec;
+
+/* ... */
+
+Codec *adpcm_codec_new ()  /* constructor de la clase ADPCMCodec */
+{
+    ADPCMCodec *obj;
+
+    obj = (ADPCMCodec *) g_malloc(sizeof(ADPCMCodec)); @\label{cons_obj_adpcm}@
+    obj->codec_class._init = &adpcm_codec_init;
+	//obj->codec_class._getinfo = &adpcm_codec_getinfo;
+    obj->codec_class._getinfo = NULL;
+    obj->codec_class._encode = NULL;
+    obj->codec_class._decode = NULL;
+    obj->codec_class._about = &adpcm_codec_about;
+    obj->codec_class._configure = &adpcm_codec_configure;
+    obj->codec_class._destroy = &adpcm_codec_destroy;
+    obj->mode = 0;
+    obj->adpcm_encode_len = 0;
+    obj->adpcm_decode_len = 0;
+
+    return ((Codec *) obj);  @\label{ret_obj_adpcm}@
+}
+
+gboolean 
+adpcm_codec_init (Codec *codec, AudioProperties *ap, 
+                  ConfigFile *config, CodecMode mode, GError **error)
+{
+    ADPCMCodec *obj = (ADPCMCodec *) codec;
+
+    UNUSED(config);
+    if (ap->format != FMT_S16_LE) {
+		g_set_error(error, PLUGIN_CODEC_AUDIO_ERROR, 
+                    PLUGIN_CODEC_AUDIO_ERROR_APROPERTIES, 
+                    "audio con formato no soportado");
+        return FALSE;
+    }
+    if (mode & CODEC_DECODE) {
+		if (mode & CODEC_ENCODE) {
+		    obj->codec_class._encode = &adpcm_codec_encode;
+		    obj->adpcm_encode_len = ADPCM_ENCODE_LENGTH;
+		}
+		obj->codec_class._decode = &adpcm_codec_decode;
+		obj->adpcm_decode_len = ADPCM_DECODE_LENGTH;
+		obj->mode |= mode;
+	    return TRUE;
+    } else {
+		if (mode & CODEC_ENCODE) {
+		    obj->codec_class._encode = &adpcm_codec_encode;
+		    obj->adpcm_encode_len = ADPCM_ENCODE_LENGTH;
+		}
+		obj->mode |= mode;
+	    return TRUE;
+    }
+    return FALSE;
+}
+\end{lstlisting}
+
+Como se puede apreciar en este úlimo listado en la línea \ref{cons_obj_adpcm}, el constructor del codec \emph{ADPCM} crea un objeto de tipo \emph{ADPCMCodec}, pero retorna realmente (línea \ref{ret_obj_adpcm}) un objecto de tipo \emph{Codec}, haciendo un \emph{casting}. Esto se puede hacer así, porque la estructura \emph{ADPCMCodec} tiene incluída en primer lugar a la estructura \emph{Codec}, con lo que el casting sólo reconocerá esa estructura. De esta forma se consigue una referencia a memoria en la superclase \emph{Codec}, de tipo \emph{codec}, pero que apunta realmente a una estructura \emph{ADPCMCodec} que nunca va a ser accedida, ya que en ese nivel, no se conoce su formato ni existencia. Posteriormente, como se aprecia en los listados \ref{herencia_codec}, \ref{imple_herencia_codec} y \ref{plu_adpcm}, todas las llamadas de las clases heredadas reciben siempre una refencia a \emph{Codec}, pero, sólo cada subclase especializada conoce realmente la estructura interna de \emph{ADPCMCodec}. \\
+
+Tras explicar el funcionamiento de la herencia, se va a detallar el uso de cada una de las funciones que debe tener implementadas un \emph{Codec Plugin}. El API está mostrada en el listado \ref{api_plugin_codec} . \\
+
+El plugin debe tener definida una función {\it PLUGIN\_CODEC\_STRUCT} de tipo {\it LFunctionPlugin\_Effect\_InOut} que devolverá un puntero a una estructura {\it Plugin\_Codec} para poder ser cargado. Estos son los símbolos que debe exportar el plugin tras la llamada a la función definida por {\it PLUGIN\_CODEC\_STRUCT}:
+
+{ \renewcommand{\labelitemi}{}
+\begin{itemize}
+    \item \textbf{*name}: nombre del plugin.
+	\item \textbf{*filename}: nombre del fichero compilado.
+	\item \textbf{*description}: breve descripción del plugin.
+    \item \textbf{*license}: licencia bajo la cual se distribuye el plugin.
+    \item \textbf{uncompressed\_fr\_size}: tamaño del frame de audio que debe recibir el plugin, el programa principal por medio del doble buffer puede ofrecerle cualquier tamaño.
+    \item \textbf{compressed\_fr\_size}: tamaño del frame de audio comprimido.
+    \item \textbf{rate}: frecuencia a la que debe recibir el audio (Hz).
+    \item \textbf{bw}: ancho de banda aproximado que consume.
+    \item \textbf{payload}: número que indentifica el codec en el estándar RTP/RTCP (RFC 1889).
+    \item \textbf{audio}\_ms: tiempo en milisegundos de cada frame de audio comprimido.
+    \item \textbf{(*constructor)}: método constructor de la clase, debe devolver una referencia a una estructura \emph{codec} (no NULL).
+\end{itemize} }
+
+A continuación se detalla la estructura \emph{codec} que implementa la superclase para la herencia a las subclases (plugins):
+
+{ \renewcommand{\labelitemi}{}
+\begin{enumerate}
+    \item \textbf{(*\_init)}: el programa principal, tras llamar al constructor, llama a \emph{init} con los parámetros: {\it codec}, el codec construido; {\it ap}, las propiedades del audio y el modo de compresión elegido: \emph{CODEC\_NONE} si sólo se inicia el plugin para ser configurado, \emph{CODEC\_ENCODE} si sólo va a codificar audio, \emph{CODEC\_DECODE} si sólo se va a codificar audio y \emph{CODEC\_DECODE | CODEC\_DECODE} para ambas cosas.
+    \item \textbf{(*\_getinfo)}: obtiene toda la información acerca del codec: estado, caracteristicas, etc.
+    \item \textbf{(*\_encode)}: función que se llama para comprimir un buffer de audio de tamaño {\it uncompressed\_fr\_size} a {\it compressed\_fr\_size}.
+    \item \textbf{(*\_decode)}: se llama para descomprimir un frame de audio, ``inversa'' de la anterior.
+    \item \textbf{(*\_destroy)}: destrucción del objecto.
+\end{enumerate} }
+
+El resto de las funciones no son de implementación obligada. Hay, también, que tener en cuenta que, a igual que ocurría en el plugin explicado anteriormente, las funciones de  compresión y descompresión pueden ser llamadas concurrentemente y no siempre con los mismos intervalos temporales. \\
+
+Para la implementación práctica de este plugin se usó el algoritmo de ADPCM, ya que su código es libre, relativamente corto y es relativamente fácil de entender. Logra comprimir el audio en trozos de 256 bytes consiguiendo una relación de compresión 4:1. No posee sistema de VAD (Voice Activity Detection) ni complejos sistemas de predicción de audio. El plugin se llama ``libadpcm.so''.
+
+\section{Procesador de Audio}
+
+Es un subsistema clave en \software , permite el desarrollo -fácilmente- del concepto de multisesión, ya que es el encargado de mezclar y/o proveer audio de/a varias fuentes/consumidores. Es un hilo independiente que controla el plugin \emph{InOut}. Recibe y despacha el audio por \emph{colas asíncronas} bloqueantes en lectura, lo que permite una implementación fácil a modo FIFO. Internamente su funcionamiento se basa en mecanismos del kernel de IPC (gestión de memoria compartida y colas de mensajes entre procesos), concretamente en el paso de \emph{mensajes}, pero consumiendo muchos menos recursos que su implementación con FIFO's. Este subsistema abstrae el dispositivo de sonido para ofrecer mayores prestaciones al programa: cambio de tamaño de bloque de audio, cambio de formato interno de audio, mezclador/dispensador de audio, etc. A continuación se muestra el API que implementa este TDA.
+
+\begin{lstlisting}
+
+struct _NodeAqueue
+{
+    gint id_aqueue;
+    GAsyncQueue *aqueue;
+};
+typedef struct _NodeAqueue NodeAqueue;
+
+gboolean 
+audio_processor_loop_create (AudioProperties *ap_dsp, 
+                             AudioProperties *ap_internal, 
+                             gint blocksize_dsp, gint blocksize_internal, 
+                             glong block_time, gint *cng, 
+                             Plugin_InOut *pluginio, GError **error);
+gboolean audio_processor_loop_destroy (GError **error);
+
+gboolean audio_processor_loop_create_mic (gint id, GAsyncQueue **queue);
+gboolean audio_processor_loop_free_mic (gint id);
+
+gboolean audio_processor_loop_create_spk (gint id, GAsyncQueue **queue);
+gboolean audio_processor_loop_free_spk (gint id);
+
+gpointer audio_processor_loop (gpointer data);
+
+\end{lstlisting}
+
+Seguidamente se muestra la implementación clave del TDA, el thread que hace posible su funcionamiento:
+
+\begin{lstlisting}
+
+gpointer audio_processor_loop (gpointer data)
+{
+    guchar *areturn, *buffer_read, *buffer_read_aux, *buffer_write;
+    guchar *buffer_write_add, *buffer_write_aux;
+    NodeAqueue *node;
+    gint number_spk, counter, bytes_read, c, counterpops;
+    gfloat factor, tmp;
+    gint16 *j, *k;
+    gpointer buf;
+
+    UNUSED(data);
+    buffer_read = (guchar *) g_malloc0(audio_blocksize_dsp);
+    buffer_read_aux = (guchar *) g_malloc0(audio_blocksize_buf);
+    buffer_write_aux = (guchar *) g_malloc0(audio_blocksize_buf);
+    buffer_write_add = (guchar *) g_malloc0(audio_blocksize_buf);
+    buffer_write = (guchar *) g_malloc0(audio_blocksize_dsp);
+
+    while (process) {
+		if (sleep_time != 0) {           @\label{ap_sleep}@
+		    sleep_us(sleep_time - 1000);
+		}
+	    g_mutex_lock(mutex_aqueue_mic);
+		bytes_read = plugin->read(buffer_read, audio_blocksize_dsp);
+		if (bytes_read != audio_blocksize_dsp) {
+		    g_printerr("[AUDIO PROCESSOR] Bloque esperado != bytes leidos
+                       (%d != %d)\n", audio_blocksize_dsp, bytes_read);
+		    if (bytes_read <= 0) {
+				g_printerr("[AUDIO PROCESSOR] bytes leidos : %d\n", bytes_read);
+		    } else {
+				gint cond = audio_blocksize_dsp - bytes_read;
+				gint index = bytes_read;
+				while (cond > 0) {
+				    bytes_read = plugin->read(&buffer_read[index], cond);
+				    index += bytes_read;
+				    cond = cond - bytes_read;
+				}
+			}
+		}
+	    memcpy(buffer_read_aux, buffer_read, audio_blocksize_dsp);
+		buf = buffer_read_aux;
+		if (audio_in_convert_function != NULL)  @\label{ap_convert1}@
+			audio_blocksize_buf = audio_in_convert_function(buf,audio_blocksize_dsp);
+		else audio_blocksize_buf = audio_blocksize_dsp;
+
+		// Audio in (mic)
+		counter = 0;
+		node = (NodeAqueue *) g_slist_nth_data(list_aqueues_mic, counter); @\label{ap_mic}@
+		while (node != NULL) {
+#ifdef A_PROCESSOR_DEGUG
+		    g_print("[AUDIO PROCESSOR] LEE: %d; Numero de cola: %d; 
+                    long cola mics: %d\n", bytes_read, counter, 
+                    g_async_queue_length(node->aqueue));
+			fflush(NULL);
+#endif
+		    g_async_queue_push(node->aqueue, g_memdup(buffer_read_aux, 
+                               audio_blocksize_buf));
+		    node = (NodeAqueue *) g_slist_nth_data(list_aqueues_mic, ++counter);
+		}
+		g_mutex_unlock(mutex_aqueue_mic);
+
+		// Audio out (speaker)
+		g_mutex_lock(mutex_aqueue_spk);
+		counter = 0;
+		counterpops = 0;
+	 	number_spk = g_slist_length(list_aqueues_spk);
+		factor = 1.0 / (gfloat) number_spk;
+		memset(buffer_write_add, '\0', audio_blocksize_buf);
+		node = (NodeAqueue *) g_slist_nth_data(list_aqueues_spk, counter);  @\label{ap_lspk}@ 
+		while (node != NULL) {
+		    if ((areturn = g_async_queue_try_pop(node->aqueue)) != NULL) {
+				counterpops++;
+				if (number_spk != 1) {
+				    memcpy(buffer_write_aux, areturn, audio_blocksize_buf);
+				    j = (gint16 *) buffer_write_aux;
+				    k = (gint16 *) buffer_write_add;
+				    for (counter=0; counter<(audio_blocksize_buf/2); counter++) {
+#if G_BYTE_ORDER == G_LITTLE_ENDIAN
+						tmp = *j * factor;
+						if (tmp >= 0) *k = *k + (gint16) (tmp + 0.5);
+						else *k = *k + (gint16) (tmp - 0.5);
+#elif G_BYTE_ORDER == G_BIG_ENDIAN
+						tmp = GINT16_TO_BE(*j);
+						tmp = tmp * factor;
+						if (tmp >= 0) 
+							*k = GINT16_TO_LE(GINT16_TO_BE(*k) + (gint16) (tmp + 0.5));
+						else 
+							*k = GINT16_TO_LE(GINT16_TO_BE(*k) + (gint16) (tmp - 0.5));
+#else
+#error "G_BYTE_ORDER should be big or little endian."
+#endif
+						j++;
+						k++;
+				    }
+				} else {
+				    memcpy(buffer_write_add, areturn, audio_blocksize_buf);
+				}
+				g_free(areturn);
+		    }
+#ifdef A_PROCESSOR_DEGUG
+		    g_print("[AUDIO PROCESSOR] ESCRIBE: %d; Numero de cola: %d; 
+                    long cola speakers %d\n", bytes_read, counter, 
+	                g_async_queue_length(node->aqueue));
+			fflush(NULL);
+#endif
+		    node = (NodeAqueue *) g_slist_nth_data(list_aqueues_spk, ++counter);
+		}
+		buf = buffer_write_add;
+		if (audio_out_convert_function != NULL) @\label{ap_convert2}@
+			audio_blocksize_dsp =audio_out_convert_function(buf,audio_blocksize_buf);
+		memcpy(buffer_write, buffer_write_add, audio_blocksize_dsp);
+		if ((counterpops == 0) && (*audio_cng == 1)) {    @\label{ap_cng}@
+		    j = (gint16 *) buffer_write;
+		    for (c=0; c<(audio_blocksize_dsp/2); c++) {
+				tmp = (*j * (1 - AP_GNG_FACTOR)) + (AP_GNG_FACTOR * (gint16) 
+				g_random_int_range(-AP_CNG_RANGE, AP_CNG_RANGE));
+				if (tmp >= 0) *j = (gint16) (tmp + 0.5);
+				else *j = (gint16) (tmp - 0.5);
+				j++;
+		    }
+		}
+		bytes_read = plugin->write(buffer_write, audio_blocksize_dsp);
+		if (bytes_read != audio_blocksize_dsp) {
+		    g_printerr("[AUDIO PROCESSOR] Bloque disponible != bytes escritos 
+                       (%d != %d)\n", audio_blocksize_dsp, bytes_read);
+		}
+		g_mutex_unlock(mutex_aqueue_spk);
+	    sleep_us(1000);
+    }
+    plugin->flush(0);
+    g_free(buffer_read);
+    g_free(buffer_read_aux);
+    g_free(buffer_write_aux);
+    g_free(buffer_write_add);
+    g_free(buffer_write);
+    g_thread_exit(NULL);
+    return NULL;
+}
+\end{lstlisting}
+
+Toda esta función constituye un thread que es lanzado ante cualquier operación de E/S de audio mediante el \emph{InOut Plugin} seleccionado. Como se puede observar en las líneas \ref{ap_lspk} y \ref{ap_mic} y en el listado del API, este subsistema controla las colas consumidoras y productoras de audio con listas enlazadas que, en el primer caso recorre para colocar un buffer de audio en cada una y en el segundo suma el audio de todas las fuentes de la lista. Ambas operaciones se realizan bloqueando sendos semáforos, evitan que mientras se esté recorriendo cada lista, otro proceso concurrente cree otra cola que se añadiría a la lista en cuestión, provocando errores incontrolables. \\
+
+Por otro lado, hay que decir que, en las colas de asíncronas de audio, sólo se envían y reciben referencias a buffers, creadas dinámicamente. En un primer analísis, se podría pensar que esta implementación reduce el rendimiento, pero eso no es del todo cierto:
+
+\begin{enumerate}
+	\item El número de reservas de memoria por segundo depende del tamaño de bloque de audio. Para un tamaño de bloque de 1024 bytes a 8000 Hz. se produce una reserva de memoria cada $0.128$ segundos, un tiempo aceptable.
+	\item Como el número de reservas/liberaciones de memoria se mantiene constante -cada vez que se crea un nuevo buffer, se libera otro-, las llamadas de reserva de memoria no llegan al kernel, las controla \emph{libc}, por lo que, el rendimiento no empeora significativamente.
+	\item Este sistema permite absorber ilimitadamente las variaciones temporales en el envío/recepción de paquetes de audio -provocadas en la red-, ya que, cada bloque de audio, tiene un espacio de memoria diferente. Con un sistema de buffers estáticos, esto no sería posible -o por lo menos tan fácil de implementar- porque, ante un cierto retardo, se sobreescribirían buffers no procesados.
+\end{enumerate}
+
+Otra consideración importante, es que, este thread es capaz de controlar el tiempo que debe esperar entre lecturas/escrituras en el dispositivo de audio. La mejor forma de medir el tiempo de forma precisa es a través del propio dispositivo de lectura, ya que bloquea la llamada hasta que hay un bloque listo para leer. Sin embargo si el plugin de E/S no tiene lectura bloqueante, se calcula el tiempo que le corresponde y duerme el proceso (línea \ref{ap_sleep}) simulando un bloqueo. Asimismo si el formato de sonido que ofrece el \emph{InOut Plugin} no coincide con el tratado internamente (16 bits, mono, 8000 Hz), dispone de funciones que convierten la entrada (línea \ref{ap_convert1}) y posteriormente la salida (línea \ref{ap_convert2}) entre ambos formatos de audio. La función de conversión se obtiene al inicilizar todo el subsistema, y es un puntero a una función disponible en el fichero \emph{audio\_convert.h}. \\
+
+También se puede observar que el código incorpora un sistema de CNG (Comfort Noise Generation) -línea \ref{ap_cng}- para producir un ligero ruido, que simule que la comunicación está activa.
+ 
+\section{Doble buffer de audio}
+
+Esta es otra parte fundamental en \software . Tiene como función principal, servir de adaptador entre el bloque de audio que aporta el subsistema \emph{Procesador de Audio} y el bloque de audio que solicita un plugin. Normalmente el primero es mucho mayor que el segundo, por lo que hay que implementar un sistema que consiga gestionar eficientemente este proceso. El buffer lee el audio de una cola asícrona, que se ha solitado al subsistema \emph{Procesador de Audio}- y envía ese audio al codec compresor, para más tarde despacharlo por la red en formato RTP, esto es todo lo que realiza un thread, pero paralelamente hay otro que realiza la función inversa. \\
+
+Además, también realiza otras funciones como:
+\begin{itemize}
+	\item Controlar el tamaño de las colas de audio que enlazan con el Procesador de Audio. Si este buffer deja de leer/escribir, las colas se vaciarán y se sincronizará inmediatamente el audio. Por esa razón el ``mute'' ofrece a su vez la posibilidad de sincronizar el audio. Si hay muchos bloques en la cola, se produce un retardo en el sonido, pero esto, por supuesto tiene las ventajas ya mencionadas anteriormente.
+	\item Gestionar los plugins de efectos de audio. En estos buffers es donde se llama a las funciones de los \emph{Effect Plugin}, para cada bloque de audio que se lee de la cola asíncrona de recepción/envío (línea \ref{llamada_plugin}).
+\end{itemize}
+
+\begin{lstlisting}
+/* ... audio_buffer.h */
+
+struct _AudioBuffer
+{
+    guchar *buffer;
+    gint ptr_write_buffer;
+    gint ptr_read_buffer;
+    gint blocksize_write;
+    gint blocksize_read;
+    gint buffer_length;
+    AudioProperties *pp;
+};
+typedef struct _AudioBuffer AudioBuffer;
+
+struct _PluginEffectNode
+{
+    Plugin_Effect *plugin;
+    GModule *module;
+    gint id;
+    gboolean active;
+    gpointer state;
+};
+typedef struct _PluginEffectNode PluginEffectNode;
+
+struct _ABuffer
+{
+    GSList *list_plugins;
+    GAsyncQueue *aqueue;
+    AudioBuffer *audio;
+};
+typedef struct _ABuffer ABuffer;
+
+ABuffer 
+*init_read_audio_buffer (gpointer audio_aqueue, gint audio_blksize_in, 
+						gint audio_blksize_out, AudioProperties *apts, 
+						GSList *plugins, GError **error);
+gint free_read_audio_buffer (ABuffer *ab);
+gint read_audio_buffer (ABuffer *ab, gint *mute, gpointer audio_data);
+
+ABuffer 
+*init_write_audio_buffer (gpointer audio_aqueue, gint audio_blksize_in,
+						gint audio_blksize_out, AudioProperties *apts, 
+						GSList *plugins, GError **error);
+gint free_write_audio_buffer (ABuffer *ab);
+gint write_audio_buffer (ABuffer *ab, gfloat *f, gint *mute, 
+						gpointer audio_data);
+
+/* --- */
+/* ... audio_buffer_out.c */
+
+gint 
+write_audio_buffer (ABuffer *ab, gfloat *f, gint *mute, gpointer audio_data)
+{
+    gpointer c;
+    gint16 *j;
+    gfloat tmp, factor;
+    gint b, counter;
+    PluginEffectNode *pn;
+
+    factor = *f;
+    memcpy((ab->audio->buffer + ab->audio->ptr_write_buffer), audio_data, 
+			ab->audio->blocksize_write);
+    ab->audio->ptr_write_buffer += ab->audio->blocksize_write;
+    if ((ab->audio->ptr_write_buffer - ab->audio->ptr_read_buffer) >= 
+		ab->audio->blocksize_read) {
+		// Volume
+		if (factor > 0)	{
+		    j = (gint16 *) (ab->audio->buffer + ab->audio->ptr_read_buffer);
+		    for (counter=0; counter<(ab->audio->blocksize_read/2); counter++) {
+#if G_BYTE_ORDER == G_LITTLE_ENDIAN
+				tmp = *j * factor;
+				if (tmp > 32767) tmp = 32767;
+				if (tmp < -32767) tmp = -32767;
+				if (tmp >= 0) *j = (gint16) (tmp + 0.5);
+				else *j = (gint16) (tmp - 0.5);
+#elif G_BYTE_ORDER == G_BIG_ENDIAN
+				tmp = GINT16_TO_BE(*j);
+				tmp = tmp * factor;
+				if (tmp > 32767) tmp = 32767;
+				if (tmp < -32767) tmp = -32767;
+				if (tmp >= 0) *j = GINT16_TO_LE((gint16) (tmp + 0.5));
+				else *j = GINT16_TO_LE((gint16) (tmp - 0.5));
+#else
+#error "G_BYTE_ORDER should be big or little endian."
+#endif
+				j++;
+		    }
+		}
+		// plugins
+		counter = 0;
+		pn = (PluginEffectNode *) g_slist_nth_data(ab->list_plugins, counter);
+		while (pn) {
+		    if (pn->active) {
+				b = ab->audio->blocksize_read;
+				pn->plugin->pefunction(pn->state, (ab->audio->buffer + @\label{llamada_plugin}@
+									ab->audio->ptr_read_buffer), &b, AUDIO_CALL_IN);
+		    }
+		    counter++;
+		    pn = (PluginEffectNode *) g_slist_nth_data(ab->list_plugins, counter);
+		}
+		if (*mute != 1) {
+		    c = g_malloc(ab->audio->blocksize_read);
+		    memcpy(c, (ab->audio->buffer + ab->audio->ptr_read_buffer), 
+					ab->audio->blocksize_read);
+		    g_async_queue_push(ab->aqueue, c);
+		}
+		ab->audio->ptr_read_buffer += ab->audio->blocksize_read;
+		if (ab->audio->ptr_write_buffer == ab->audio->ptr_read_buffer) {  @\label{comp_mcm}@
+			// return at the beginning
+			ab->audio->ptr_write_buffer = 0;
+			ab->audio->ptr_read_buffer = 0;
+		}
+		return 1;
+    }
+    return 0;
+}
+/* ... */
+\end{lstlisting}
+
+En el caso del buffer de entrada, el funcionamiento es similar pero a la inversa, es decir se lee de la cola de audio un bloque de 1024 bytes -por ejemplo- y se gestiona en pequeños bloques para el codec de compresión. \\
+
+Como se puede apreciar en el código, el buffer es circular, y nunca se va ha sobreescribir audio, ya que sólo se lee/escriben los datos bajo demanda, cuando no queda suficiente espacio o en el caso de la lectura, cuando no hay suficiente audio almacenado. \\
+
+Hay que señalar también que para el cálculo del tamaño total del buffer se emplea el MCM (Mínimo Común Múltiplo). Se calcula el MCM de 2, del tamaño de bloque de audio del dispositivo -normalmente 1024 bytes- y del tamaño del bloque de audio que necesita el codec -generalmente menor de 512 bytes-. De esta forma, determinar cuando se ha llegado al final del buffer para volver a empezar por el principio es trivial: cuando el puntero de lectura (bloques de 512 bytes, por ejemplo) apunte al mismo lugar que el puntero de escritura (bloques de 1024 bytes). Con este método, se reducen gran cantidad de comprobaciones -muy difíciles si el tamaño de los buffers fuera fijo- a sólo una, línea \ref{comp_mcm}. \\
+
+Tanto el thread del buffer de entrada como el del buffer de salida, son totalmente independientes uno del otro, esa es la razón por la que el programa puede usar un codec para enviar audio y otro totalmente distinto (con distinto radio de compresión, tamaño de bloque de entrada, distinto tiempo de cómputo, etc.) para la salida.
+
+\section{Proceso RTP/RTP}
+
+Es el subsistema encargado de enviar, recibir y controlar los paquetes RTP que contienen el audio comprimido. Es un subsistema muy complejo, por lo que sólo se van a comentar las partes más importantes. Los ficheros de código fuente que engloba son: {\it io.c}, {\it io.h} y todos los del directorio {\it rtp}. \\
+
+Consta de tres threads:
+\begin{enumerate}
+	\item Lee los datos del doble buffer de audio -y éste, de una cola asíncrona de audio del \emph{Procesador de Audio}- y lo comprime con la clase \emph{codec}, construye un paquete RTP y lo envía a la red con su payload correspondiente.
+	\item Recoge los paquetes RTP de la red, descomprime el audio -si puede-, lo envía al buffer de audio y éste lo escribe en las colas asíncronas productoras. Si resulta imposible descomprimir el audio, bien porque el paquete está dañado o porque el payload (contenido) ha cambiado, notifica esta circunstacia al thread 3, a través de otra cola de mensajes asíncronos (\emph{qrtcp}).
+	\item Este thread es el encargado de la conexión RTCP, recibe los paquetes RTCP por el puerto inmediatamente superior al asignado a RTP, -siguiendo el estándar, el puerto es impar, ya que el puerto RTP debe ser par-. Asimismo, también controla los paquetes que le envían los dos threads (también en formato RTCP, pero estos locales, de tipo \emph{APP}, subtipo  \emph{LOCAL\_RTCP\_APP}) a través de una cola asíncrona de mensajes (línea \ref{rtcp_cola}) y decide que hacer en función del tipo de paquete. También lleva toda la gestión de la sesión RTCP, tal como indica el estándar RFC 1889 (control de usuarios, envío de seguimiento online, envío de timeouts, \emph{BYE's}, etc.). Otra de sus funciones es actualizar los datos relativos a la sesión RTP/RTCP en una estructura, para ofrecer una información detallada en la GUI. En el siguiente listado se muestra su implementación (fichero \emph{io.c}).
+\end{enumerate}
+
+\begin{lstlisting}
+/* ... */
+
+while (asession->process) {
+gint i;
+gint32 ssrc_timeout = -1;
+rtcp_app *app;
+
+g_get_current_time(&time);
+g_time_val_add(&time, 80000);
+if ((p = g_async_queue_timed_pop(qrtcp, &time)) == NULL) {         @\label{rtcp_cola}@
+g_mutex_lock(user_data.mutex);
+	rtp_send_ctrl(asession->rtps, user_data.rtp_ts, NULL);
+	rtp_update(asession->rtps);
+	g_mutex_unlock(user_data.mutex);
+} else {
+    e = (RtpEvent *) p;
+	switch (e->type) {
+	case RX_SDES:
+ 		// Warning controled ;-) (mutex)
+		g_mutex_lock(rtpinfo->mutex);
+		r = (rtcp_sdes_item *)e->data;
+		sdes_print(asession->rtps, e->ssrc, r->type, rtpinfo);
+		g_mutex_unlock(rtpinfo->mutex);
+		break;
+	case RX_BYE:
+		g_mutex_lock(rtpinfo->mutex);
+		if (rtpinfo->num_sources == 2) {
+			asession->bye = TRUE;
+			rtpinfo->bye = TRUE;
+			asession->process = FALSE;
+		}
+		g_mutex_unlock(rtpinfo->mutex);
+		break;
+	case SOURCE_CREATED:
+		g_mutex_lock(rtpinfo->mutex);
+		rtpinfo->ssrcs[rtpinfo->num_sources] = e->ssrc;
+		rtpinfo->num_sources = rtpinfo->num_sources + 1;
+		g_mutex_unlock(rtpinfo->mutex);
+		break;
+	case SOURCE_DELETED:
+		g_mutex_lock(rtpinfo->mutex);
+		rtpinfo->num_sources = rtpinfo->num_sources - 1;
+		for (i = 0; i < 10; i++) {
+			if (rtpinfo->ssrcs[i] == e->ssrc) {
+				rtpinfo->ssrcs[i] = 0;
+				memset(rtpinfo->sdes_info[i][0], 0, 256);
+				memset(rtpinfo->sdes_info[i][1], 0, 256);
+				memset(rtpinfo->sdes_info[i][2], 0, 256);
+				memset(rtpinfo->sdes_info[i][3], 0, 256);
+				memset(rtpinfo->sdes_info[i][4], 0, 256);
+			}
+		}
+		if (rtpinfo->num_sources == 1) rtpinfo->timeout = TRUE;
+		g_mutex_unlock(rtpinfo->mutex);
+		break;
+	case RX_SR:
+		break;
+	case RX_RR:
+		break;
+	case RR_TIMEOUT:
+		ssrc_timeout = e->ssrc;
+		break;
+	case RX_APP:
+		app = (rtcp_app *) e->data;
+		if ((app->ssrc == my_ssrc) && (app->subtype == LOCAL_RTCP_APP))	{
+			// change payload
+			// OK for the moment, becose ...
+			g_mutex_lock(rtpinfo->mutex);
+			rtpinfo->change_payload = TRUE;
+			rtpinfo->payload = app->pt;
+			g_mutex_unlock(rtpinfo->mutex);
+		}
+		break;
+	default:
+		break;
+	}
+	g_free(e->data);
+	g_free(e->ts);
+	g_free(e);
+	g_mutex_lock(user_data.mutex);
+	rtp_send_ctrl(asession->rtps, user_data.rtp_ts, NULL);
+	rtp_update(asession->rtps);
+	g_mutex_unlock(user_data.mutex);
+}
+/* ... */
+\end{lstlisting}
+
+Otra de las características importantes, es que el thread receptor RTP dispone de un algoritmo para controlar cuando el RTP remoto activa VAD (Voice Activity Detection) y hace transmisión discontinua (TD). Esta situación sería insalvable con otro tipo de arquitectura, sin tres threads independientes. Hay que tener en cuenta que si VAD está activado los paquetes llegan en secuencia, pero con distinto \emph{timestamp}. A continuación se muestra la parte que controla estas situaciones:
+
+\begin{lstlisting}
+/* ... */
+
+enter = TRUE;
+if (user_data->node_codec_rx != NULL) {
+    if ((bytes = codec_decode(user_data->node_codec_rx->codec, 
+                 p->data, user_data->buffer_data_rx)) == PLUGIN_CODEC_NOTDECODE)
+    {
+		g_printerr("[IO] handler_rtp_event: el plugin seleccionado es incapaz 
+                   de descomprimir el audio.\n");
+		enter = FALSE;
+    }
+} else {
+	k = (guint16 *) p->data;
+	j = (guint16 *) user_data->buffer_data_rx;
+	for (i=0; i<(user_data->data_len_rx/2); i++) {
+		*j = g_ntohs(*k);
+		j++; k++;
+	}
+}
+if (enter) {
+	if (seq != 0) {
+		while (++seq < p->seq) {
+			if (control == 0) {
+				control = write_audio_buffer(user_data->ab, 0, 
+                          user_data->mute_vol, user_data->buffer_data_rx);
+		    }
+		    timestamp += user_data->audio_ms_rx;
+		}
+	} else {
+		seq = p->seq;
+		timestamp = p->ts;
+	}
+	while ((timestamp += user_data->audio_ms_rx) < p->ts) {
+		if (control == 0) {  /* escribe 0's */
+	    	control = write_audio_buffer(user_data->ab, 0, user_data->mute_vol, 
+        	user_data->buffer_data_rx);
+		}
+	}
+	control = write_audio_buffer(user_data->ab, user_data->audio_gaim_rx, 
+              user_data->mute_vol, user_data->buffer_data_rx);
+} else {
+	if (seq != 0) {
+		while (++seq < p->seq) {
+			if (control == 0) { /* escribe 0's */
+				control = write_audio_buffer(user_data->ab, 0, user_data->mute_vol,
+                          user_data->buffer_data_rx);
+		    }
+		    timestamp += user_data->audio_ms_rx;
+		}
+	} else {
+		seq = p->seq;
+		timestamp = p->ts;
+	}
+	while ((timestamp += user_data->audio_ms_rx) < p->ts) {
+		if (control == 0) {  /* escribe 0's */
+			control = write_audio_buffer(user_data->ab, 0, user_data->mute_vol,
+                      user_data->buffer_data_rx);
+		}
+	}
+}
+\end{lstlisting}
+
+Finalmente se va a detallar el método ideado para cambiar el codec compresión de audio (de salida). Para ello se procede de la siguiente forma:
+
+\begin{enumerate}
+	\item Se paran todos los (3) threads del subsistema RTP/RTCP, y se destruye el buffer de salida de audio, pero no la cola asíncrona a la que está conectado. Cuando se para todo el subsistema RTP/RTCP, no se indica nada al usuario remoto, él continúa enviando paquetes RTP y RTCP, puesto que los sockets no se han destruido, solo se ha salido eventualmente del proceso.
+	\item Se busca el codec que encaje con el payload requerido, si no se encuentra el codec, la sesión se destruye y se pierde irremediablemente.
+	\item Se crean un nuevo buffer de audio ajustado a las características requeridas por el codec y se le asigna la cola asíncrona original, antes liberada.
+	\item Finalmente, se crea otra vez el proceso RTP/RTCP y todo continúa funcionando de la misma forma, pero con un codec de salida distinto, ya que el de entrada (recibe el audio de la red) no se puede cambiar, no depende del usuario local.
+\end{enumerate}
+
+\section{Tratamiento de XML}
+
+Para acceder a los datos en formato XML de la agenda de contactos, se empleó la librería libxml-2. Provee multitud de funciones y modos de procesamiento (SAX, DOM, validación con el DTD, etc.). Este es el TDA que implementa el acceso a los datos XML:
+
+\begin{lstlisting}
+/* ... addbook_xml.h */
+
+struct _ItemUser
+{
+    gchar *name;
+    gchar *user;
+    gchar *host;
+    guint16 port;
+    gboolean ignore;
+    gchar *description;
+    gchar *photo;
+};
+typedef struct _ItemUser ItemUser;
+
+/* ... */
+
+#define XML_ROOT_NODE           "agenda"
+#define XML_CONTACT             "contacto"
+#define XML_CONTACT_DEFAULT     "default"
+#define XML_CONTACT_IGNORE      "ignore"
+#define XML_CONTACT_NAME        "nombre"
+#define XML_CONTACT_USER        "usuario"
+#define XML_CONTACT_HOST        "host"
+#define XML_CONTACT_PORT        "puerto"
+#define XML_CONTACT_DESCRIPTION "descripcion"
+#define XML_CONTACT_PHOTO       "foto"
+#define XML_COMMENT             "Fichero de contactos, programa 'addressbook'"
+
+xmlDocPtr xml_opendoc (gchar *docname, GError **error);
+xmlDocPtr xml_newdoc ();
+void xml_freedoc (xmlDocPtr doc);
+gboolean xml_savedoc (xmlDocPtr doc, gchar *filename, GError **error);
+
+gboolean xml_set_default_contact (ItemUser *user, xmlDocPtr doc);
+gboolean xml_set_contact (ItemUser *user, xmlDocPtr doc);
+
+GSList *xml_get_contact (xmlDocPtr doc, GError **error);
+ItemUser *xml_get_default_contact (xmlDocPtr doc, GError **error);
+
+ItemUser *xml_get_user (xmlNodePtr child);
+gboolean is_user_ignored (xmlDocPtr doc, gchar *user, GError **error);
+ItemUser *get_item_user (xmlDocPtr doc, gchar *user, GError **error);
+ItemUser *get_user (gchar *username, gchar *db, GError **error);
+void item_user_free(ItemUser *i);
+\end{lstlisting}
+
+Lo más llamativo en la implementación es que, en XML son considerados nodos las líneas en blanco y los comentarios, con lo que es necesario introducir comprobaciones para saber si el nodo que se está procesando es correcto o no. A continuación se muestra un trozo de código que ilustra esta situación:
+
+\begin{lstlisting}
+/* ... addbook_xml.c */
+
+gboolean xml_set_contact (ItemUser *user, xmlDocPtr doc)
+{
+    xmlNodePtr root;
+    xmlNodePtr nodeuser;
+    xmlNodePtr com;
+    gchar *aux;
+
+    root = xmlDocGetRootElement(doc);
+    if (root == NULL) return FALSE;
+    if (xmlStrcmp(root->name, (const xmlChar *) XML_ROOT_NODE)) return FALSE;
+    com = xmlNewText("\n");
+    xmlAddChild(root, com);
+    nodeuser = xmlNewChild(root, NULL, XML_CONTACT, NULL);
+    com = xmlNewText("\n\t");
+    xmlAddChild(nodeuser, com);
+    xmlSetProp(nodeuser, XML_CONTACT_IGNORE, (user->ignore) ? "TRUE" : "FALSE");
+    xmlNewChild(nodeuser, NULL, XML_CONTACT_NAME, user->name);
+    com = xmlNewText("\n\t");
+    xmlAddChild(nodeuser, com);
+    xmlNewChild(nodeuser, NULL, XML_CONTACT_USER, user->user);
+    com = xmlNewText("\n\t");
+    xmlAddChild(nodeuser, com);
+    xmlNewChild(nodeuser, NULL, XML_CONTACT_HOST, user->host);
+    com = xmlNewText("\n\t");
+    xmlAddChild(nodeuser, com);
+    aux = g_strdup_printf("%d", user->port);
+    xmlNewChild(nodeuser, NULL, XML_CONTACT_PORT, aux);
+    com = xmlNewText("\n\t");
+    xmlAddChild(nodeuser, com);
+    xmlNewChild(nodeuser, NULL, XML_CONTACT_DESCRIPTION, user->description);
+    com = xmlNewText("\n\t");
+    xmlAddChild(nodeuser, com);
+    xmlNewChild(nodeuser, NULL, XML_CONTACT_PHOTO, user->photo);
+    com = xmlNewText("\n");
+    xmlAddChild(nodeuser, com);
+    com = xmlNewText("\n");
+    xmlAddChild(root, com);
+    return TRUE;
+}
+
+/* ... */
+
+ItemUser *xml_get_user (xmlNodePtr child)
+{
+    ItemUser *item;
+    xmlNodePtr node;
+    xmlChar *ig;
+
+    if (child == NULL) return NULL;
+    item = (ItemUser *) g_malloc0(sizeof(ItemUser));
+    ig = xmlGetProp(child, (const xmlChar *) XML_CONTACT_IGNORE);
+    if (ig == NULL) item->ignore = FALSE;
+    else {
+		if (!xmlStrcmp(ig, (const xmlChar *)"TRUE")) item->ignore = TRUE;
+		else item->ignore = FALSE;
+		xmlFree(ig);
+    }
+    node = child->xmlChildrenNode;
+    while (node != NULL) {
+		if ((!xmlStrcmp(node->name, (const xmlChar *)XML_CONTACT_NAME))) {
+		    item->name = xmlNodeGetContent(node);
+		}
+		if ((!xmlStrcmp(node->name, (const xmlChar *)XML_CONTACT_USER))) {
+		    item->user = xmlNodeGetContent(node);
+		}
+		if ((!xmlStrcmp(node->name, (const xmlChar *)XML_CONTACT_HOST))) {
+		    item->host = xmlNodeGetContent(node);
+		}
+		if ((!xmlStrcmp(node->name, (const xmlChar *)XML_CONTACT_PORT))) {
+			ig = xmlNodeGetContent(node);
+            item->port = atoi(ig);
+			xmlFree(ig);
+		}
+		if ((!xmlStrcmp(node->name, (const xmlChar *)XML_CONTACT_DESCRIPTION)))	{
+		    item->description = xmlNodeGetContent(node);
+		}
+		if ((!xmlStrcmp(node->name, (const xmlChar *)XML_CONTACT_PHOTO))) {
+		    item->photo = xmlNodeGetContent(node);
+		}
+		node = node->next;
+	}
+	return item;
+}
+\end{lstlisting}
+
+La primera función muestra como hay que hacer para que el fichero XML resultante, quede indentado y pueda ser leído fácilmente por humanos. La segunda muestra el proceso inverso, la cantidad de comprobaciones necesarias para leer los datos significativos, saltándose los comentarios y/o líneas en blanco.
+
+\section{Proxy SSIP}
+
+En esta sección se cometarán las implementaciones más significativas desarrolladas en el proxy, aparte de las ya mencionadas en la sección de ``Código Compartido'', subsección ``Negociación \emph{SSIP} y \emph{NOTIFY}'' de este capítulo. \\
+
+El \textbf{Proxy SSIP}, nada más ser ejecutado, se convierte en un demonio de sistema y crea dos procesos. Uno encargado de gestionar las notificaciones de alta/baja de usuarios (protocolo NOTIFY) y el otro de gestionar las negociaciones SSIP de los usuarios adscritos, para ello crea un canal de comunicación que enlaza transparentemente la conexión (en las especificaciones de requisitos y diseño se detallan más claramente los usos). El proceso de negociaciones SSIP crea a su vez otros procesos hijos, que gestionan una negociación de un usuario, ya que, la duración de una negociación SSIP puede durar mucho tiempo -hasta que venza un timeout o acepte/rechaze el otro usuario-. Mientras que en el proceso de notificación, las conexiones se atienden una por una y secuencialmente, ya que esta negociación es corta, sin esperas y sólo sucede una vez al principio y otra al final (no existe posibilidad de sobrecarga). \\
+
+La parte más importante en el proxy ha sido el desarrollo del control de concurrencia entre procesos que acceden al fichero de base de datos de los usuarios del proxy. Para ello se implementó un método que usa el bloqueo de ficheros, como semáforo:
+
+\begin{lstlisting}
+/* ... ssip_proxy.c */
+
+void file_block (gint fd, gint mode)
+{
+    struct flock lk;
+
+    lk.l_type = mode;
+    lk.l_whence = SEEK_SET;
+    lk.l_start = 0;
+    lk.l_len = 0;
+    lseek(fd, 0L, SEEK_SET);
+    if (fcntl(fd, F_SETLKW, &lk)) {       @\label{block_fcntl}@
+		g_log(PROCESS_NOTIFY, G_LOG_LEVEL_CRITICAL,  @\label{log_1}@
+		"Unable to set file block: %s", strerror(errno));
+    }
+}
+
+/* ... */
+
+gint add_user (gchar *filename, NtfPkt *pkt)
+{
+    gchar *from_user, *from_host, *des, *fileblock;
+    guint16 fromport;
+    gint ipmode, nada;
+    gboolean value;
+    ConfigFile *file;
+    gchar *fileblock;
+    gint fd_block;
+    GError *tmp_error = NULL;
+
+    file = cfgf_open_file(filename, &tmp_error);
+    if (tmp_error != NULL) {
+		g_log(PROCESS_NOTIFY, G_LOG_LEVEL_CRITICAL, "%s", tmp_error->message); @\label{log_2}@
+		g_error_free(tmp_error);
+        return -1;
+    }
+    from_user = g_strndup(pkt->from_user, PKT_USERNAME_LEN);
+    ipmode = g_ntohl(pkt->ipmode);
+    if (ipmode != IPv6) {
+		from_host = g_malloc0(INET_ADDRSTRLEN+1);
+		inet_ntop(AF_INET, &(pkt->from_addr4), from_host, INET_ADDRSTRLEN);      								
+		from_host[INET_ADDRSTRLEN] = '\0';
+    }
+#ifdef NET_HAVE_IPv6
+    else {
+		from_host = g_malloc0(INET6_ADDRSTRLEN+1);
+		inet_ntop(AF_INET6, &(pkt->from_addr4), from_host, INET6_ADDRSTRLEN);
+		from_host[INET6_ADDRSTRLEN] = '\0';
+    }
+#endif
+    des = g_strndup(pkt->data, PKT_USERDES_LEN);
+    fromport = g_ntohs(pkt->from_port);
+    value = cfgf_read_int(file, from_user, "port", &nada);
+    if (!value) {
+		cfgf_write_string(file, from_user, "host", from_host);
+		cfgf_write_int(file, from_user, "port", fromport);
+		cfgf_write_string(file, from_user, "password", des);
+		fileblock = g_strdup_printf("%s.lck", filename);
+		fd_block = open(fileblock, O_RDWR | O_CREAT, 00700);
+		file_block(fd_block, F_WRLCK);                 /* cerrojo de escritura */ @\label{blk_f1}@
+		cfgf_write_file(file, filename, &tmp_error);
+		cfgf_free(file);
+		file_block(fd_block, F_UNLCK);                 /* fin cerrojo */    
+		g_free(fileblock);
+		close(fd_block);
+		value = TRUE;
+    } else {
+		cfgf_free(file);
+		value = FALSE;
+    }
+    g_free(from_user);
+    g_free(from_host);
+    g_free(des);
+    if (tmp_error != NULL) {
+		g_log(PROCESS_NOTIFY, G_LOG_LEVEL_CRITICAL, "%s", tmp_error->message); @\label{log_3}@
+		g_error_free(tmp_error);
+		return -1;
+    }
+    return value;
+}
+
+gint del_user (gchar *filename, NtfPkt *pkt)
+{
+    ConfigFile *file;
+    GError *tmp_error = NULL;
+    gchar *user, *des, *file_from_host, *file_des;
+    gboolean value, value_host, value_pass;
+    gint ipmode, fd_block;
+    gchar *from_host, *fileblock;
+
+    file = cfgf_open_file(filename, &tmp_error);
+    if (tmp_error != NULL) {
+		g_log(PROCESS_NOTIFY, G_LOG_LEVEL_CRITICAL, "%s", tmp_error->message); @\label{log_4}@
+		g_error_free(tmp_error);
+		return -1;
+    }
+    user = g_strndup(pkt->from_user, PKT_USERNAME_LEN);
+    des = g_strndup(pkt->data, PKT_USERDES_LEN);
+    ipmode = g_ntohl(pkt->ipmode);
+    if (pkt->ipmode != IPv6) {
+		from_host = g_malloc0(INET_ADDRSTRLEN+1);
+		inet_ntop(AF_INET, &(pkt->from_addr4), from_host, INET_ADDRSTRLEN);
+        from_host[INET_ADDRSTRLEN] = '\0';
+    }
+#ifdef NET_HAVE_IPv6
+    else {
+		from_host = g_malloc0(INET6_ADDRSTRLEN+1);
+		inet_ntop(AF_INET6, &(pkt->from_addr4), from_host, INET6_ADDRSTRLEN);
+		from_host[INET6_ADDRSTRLEN] = '\0';
+    }
+#endif
+    value = TRUE;
+    value &= value_host = cfgf_read_string(file, user, "host", &file_from_host);
+    value &= value_pass = cfgf_read_string(file, user, "password", &file_des);
+    des[PKT_USERDES_LEN-1] = '\0';
+    if ((value) && (!strcmp(file_des, des)) && 
+		(!strcmp(file_from_host, from_host))) {
+		cfgf_remove_key(file, user, "host");
+		cfgf_remove_key(file, user, "port");
+		cfgf_remove_key(file, user, "password");
+		fileblock = g_strdup_printf("%s.lck", filename);
+		fd_block = open(fileblock, O_RDWR | O_CREAT, 00700);  
+		file_block(fd_block, F_WRLCK);                  /* cerrojo de escritura */ @\label{blk_f2}@
+		cfgf_write_file(file, filename, &tmp_error);
+		cfgf_free(file);
+		file_block(fd_block, F_UNLCK);                  /* fin cerrojo */
+		g_free(fileblock);
+		close(fd_block);
+		g_free(file_from_host);
+		g_free(file_des);
+		value = TRUE;
+    } else {
+		if (value_host) g_free(file_from_host);
+		if (value_pass) g_free(file_des);
+		cfgf_free(file);
+		value = FALSE;
+    }
+    g_free(user);
+    g_free(des);
+    g_free(from_host);
+    if (tmp_error != NULL) {
+		g_log(PROCESS_NOTIFY, G_LOG_LEVEL_CRITICAL, "%s", tmp_error->message); @\label{log_5}@
+		g_error_free(tmp_error);
+		return -1;
+    }
+    return value;
+}
+/* ... */
+
+	fileblock = g_strdup_printf("%s.lck", filename);
+	fd_block = open(fileblock, O_RDWR | O_CREAT, 00700);
+	file_block(fd_block, F_RDLCK);                   /* cerrojo de lectura */  @\label{blk_f3}@
+	file = cfgf_open_file(filename, &tmp_error);
+	file_block(fd_block, F_UNLCK);                   /* fin del cerrojo */
+	g_free(fileblock);
+	close(fd_block);
+/* ... */
+\end{lstlisting}
+
+Hay ciertos aspectos de las funciones anteriores que merecen ser comentados:
+
+\begin{description}
+	\item [Control de concurrencia.] Como se aprecia en las líneas \ref{blk_f1}, \ref{blk_f2} y \ref{blk_f3} antes que un proceso acceda al fichero BD, bloquea otro fichero, con el mismo nombre pero con extensión ``.lck''. Este fichero se crea si no existe. Cada proceso que accede al fichero de BD primero comprueba si hay cerrojos establecidos sobre el segundo. Hay cerrojos de lectura: puede haber varios sobre el fichero -línea \ref{blk_f3}- (admite concurrencia en la lectura) y cerrojos de escritura -líneas \ref{blk_f1} y \ref{blk_f2}- que son totalmente excluyentes. Si un proceso bloquea el fichero para escritura, cualquier otro proceso que acceda al fichero se quedará suspendido hasta que el primero quite el cerrojo. Los cerrojos están implementados con la llamada al sistema \emph{fcntl} como se aprecia en la línea \ref{block_fcntl}.
+	\item [Registro exhaustivo de incidencias.] Como se aprecia en las líneas \ref{log_1}, \ref{log_2}, \ref{log_3}, \ref{log_4} y \ref{log_5}, con varios niveles de prioridad. Cualquier servidor crítico como es el caso, debe ``logear'' todas las incidencias para poder determinar el reponsable de posibles acciones.
+	\item [Compilación condicional para IPv6.] De esta forma se permite que el software pueda ser compilado con soporte para IPv6.
+\end{description}
+
+Otra consideración muy importante es el control del número de procesos hijos, para poder limitar el número de hijos se usan señales. Cada vez que se crea un hijo se incrementa un contador (línea \ref{child_count1}), cuando el hijo termina, manda una señal (SIGCHLD) al padre y este hace un \emph{wait} (así evita que queden processos ``zombis'') y decrementa ese contador (línea \ref{child_count2}). También se usan señales para que el administrador pueda interrumpir el proceso de notificación, para ello debe mandar la seña SIGUSR1 a dicho proceso (línea \ref{end_process_ntf}).
+
+\begin{lstlisting}
+/* ... ssip_proxy.c */
+
+void handler_signal_manage (int sig)
+{
+    g_log(PROCESS_NOTIFY, G_LOG_LEVEL_INFO, "Signal received (%d)", sig);
+    switch (sig) {
+	case SIGCHLD:
+		wait(0);
+		childcount--;      @\label{child_count2}@
+		break;
+    case SIGUSR1:          @\label{end_process_ntf}@     
+		go_manage_process = FALSE;
+		go_notify_process = FALSE;
+		while (childcount > 0) wait(0);
+		break;
+    default:
+		break;
+    }
+}
+/* ... */
+
+	/* Instalación de los manejadores de señal */	
+
+    g_log(PROCESS_MANAGE, G_LOG_LEVEL_INFO, "PROCESS MANAGE -- INIT --,
+         pid=%d at port %d", getpid(), port);
+    action.sa_handler = handler_signal_manage;
+    sigemptyset(&action.sa_mask);
+    action.sa_flags = SA_NOCLDSTOP;
+    if ((sigaction(SIGUSR1, &action, NULL)) < 0) {
+		g_log(PROCESS_MANAGE, G_LOG_LEVEL_CRITICAL, "%s", strerror(errno));
+		kill(ch_pid, SIGUSR1);
+		wait(0);
+		return FALSE;
+    }
+    if ((sigaction(SIGUSR2, &action, NULL)) < 0) {
+		g_log(PROCESS_MANAGE, G_LOG_LEVEL_CRITICAL, "%s", strerror(errno));
+		kill(ch_pid, SIGUSR1);
+		wait(0);
+		return FALSE;
+    }
+
+/* ... */
+
+	while (childcount >= num_forks_manager)	{
+		g_log(PROCESS_MANAGE, G_LOG_LEVEL_DEBUG, "Limits FORKS (%d)", childcount);
+		sleep(1);
+	}
+/* ... */
+
+	if ((pid = fork()) == 0) {
+		pid = getpid();
+		g_log(PROCESS_MANAGE, G_LOG_LEVEL_INFO, "FORK -- INIT -- MANAGE PROCESS,
+        pid=%d -- remote host: %s", pid, sacpt->addr);
+		tcp_exit(Sc, &tmp_error);
+		if (tmp_error != NULL) {
+		    g_log(PROCESS_MANAGE, G_LOG_LEVEL_WARNING, "FORK -- (pid=%d) -- %s", 
+            pid, tmp_error->message);
+			g_clear_error(&tmp_error);
+		}
+		protocol_manager(sacpt, filename);
+		g_log(PROCESS_MANAGE, G_LOG_LEVEL_INFO, "FORK -- EXIT -- MANAGE PROCESS, 
+        pid=%d -- remote host: %s", pid, sacpt->addr);
+		tcp_exit(sacpt, &tmp_error);
+		if (tmp_error != NULL) {
+		    g_log(PROCESS_MANAGE, G_LOG_LEVEL_WARNING, "FORK -- (pid=%d) -- 
+            Unable close socket: %s", pid, tmp_error->message);
+			g_clear_error(&tmp_error);
+		}
+		kill(fpid, SIGCHLD);
+		exit(1);
+	} else {
+		if (pid > 0) childcount++;      @\label{child_count1}@
+		else g_log(PROCESS_MANAGE, G_LOG_LEVEL_CRITICAL, "Unable to fork:
+             %s (remote host: %s)", strerror(errno), sacpt->addr);
+/* ... */
+\end{lstlisting}
+
+\section{Otras consideraciones}
+
+Como se puede apreciar a lo largo de todo el código mostrado, todos los tipos de datos son los ofrecidos por Glib, de esa forma se gana en portabilidad entre plataformas. Además todo el tratamiento de errores se realiza con \emph{GError}, que ofrece un interfaz cómodo para lidiar con esos inesperados ``amigos'': funciones de creación, propagación, copia, etc. Todos los plugins usan GModule para exportar las funciones (símbolos) al programa principal. La interfaz gráfica, implementada íntegramente con GTK+, ofrece portabilidad hasta para sistemas \emph{MS Windows}. 
+

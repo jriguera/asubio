@@ -1,0 +1,453 @@
+\capitulo{Análisis de requisitos}
+\label{chp:analisisrequisitos}
+%\newpage
+%\thispagestyle{empty}
+\minitoc
+\newpage
+
+Este es un proyecto fin de carrera y el proceso de desarrollo seguido es evolutivo, es decir,
+a lo largo del tiempo, el software propuesto ha ido evolucionando añadiendo y ampliando características, hasta llegar a la situación actual. Por esta razón, en este capítulo se van a detallar todos los requisitos funcionales de la versión 0.10 de \software , sin detallar el proceso de evolución realmente seguido. \\
+
+El ciclo de diseño es semejante a una espiral (Figura \ref{fig:diseno}). La elección de este tipo de diseño se debe a que: se adapta bien a la metodología procedimental, sólo hay un único desarrollador, hay unos objetivos mínimos a cumplir y es relativamente fácil ampliar carácterísticas, evaluando la viabilidad de cada una.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth, height=12cm] {diseno.eps}
+\caption{Proceso de diseño del sotware.}
+\label{fig:diseno}
+\end{figure}
+
+\section{Consideraciones previas}
+
+El proyecto consta de dos programas complementarios, pero independientes. El programa principal se llama \software \  y es el software propuesto inicialmente en el proyecto. Es el encargado de transmitir el audio por canales RTP al programa remoto de otro usuario. El \textbf{Proxy SSIP} es la otra parte del proyecto -una ampliación- y principalmente realiza la función de la negociación de inicio de sesión, pero, no es necesaria su instalación, ya que fue desarrollado para casos específicos comentados más adelante. Los requisitos de ambos programas se analizarán por separado. La ilustración \ref{fig:diagrama_proxy} muestra el uso del proxy. 
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth] {diagrama_proxy.eps}
+\caption[Ejemplo de funcionamiento]{Ejemplo de uso del software.}
+\label{fig:diagrama_proxy}
+\end{figure}
+
+En la situación \textbf{(1)}, se ejemplifica el uso del proxy. El proxy instalado en la máquina que hace de pasarela entre la red local y otra red (por ejemplo, Internet), ha gestionado la negociación de sesión, mientras que en la situación \textbf{(2)} el proxy no ha intervenido para nada. \\
+
+Hay que señalar que en el capítulo \ref{chp:plan_proyecto} ya se ha realizado un análisis de viabilidad, se han especificado los requisitos mínimos propuestos para el proyecto y se ha explicado los motivos de la realización de este proyecto, entre otros. En este capítulo se va a detallar un completo análisis de requisitos de todo el sistema, pero partiendo del primer análisis ya realizado. Es obvio, que cualquier ampliación añadida al proyecto era viable, de otro modo no se llevaría a cabo, por lo que, no se comentaría en esta memoria.
+
+\section{Visión general}
+
+La complejidad filnal de todo el sistema es elevada, por lo que es necesario las especificaciones detalladas del mismo, lo que ofrecerá una guía para el diseño. Los aspectos englobados son los siguientes:
+
+\begin{itemize}
+	\item Entorno de desarrollo.
+	\item Entorno de operación.
+	\item Configuración y operación.
+	\item Arquitectura funcional del sistema.
+\end{itemize}
+
+Los dos últimos aspectos son específicos de cada programa (\software \  y \textbf{Proxy SSIP}), serán tratados dentro de sendas secciones posteriormente. Además de estas especificaciones genéricas, se incluyen las especificaciones funcionales en las que se detallan los comportamientos y características de los diferentes módulos necesarios para la realización del proyecto.
+
+\subsection{Entorno de desarrollo}
+
+Para el desarrollo de este proyecto es necesario un entorno constituido por dos máquinas PC conectadas a través de una red de área local. Aunque para las etapas de análisis, diseño y prueba, basta con una, sólo es necesario el segundo PC para las pruebas de software. \\
+
+Ambas máquinas deberán tener Linux instalado con un kernel 2.4 o superior, sistema gráfico operativo (XFree86), una tarjeta de sonido compatible, soporte de dicha tarjeta en el kernel y unos altavoces -o auriculares- y un micrófono para acceder a ella. Además, deberá contar con el entorno de desarrollo apropiado para C, con su correspondiente compilador y depurador y una serie de librerías que se detallarán posteriormente. Por último, deberá disponer de toda la documentación necesaria referente al manejo de hilos, acceso a drivers de audio mediante OSS, uso de las librerías Glib y GTK+, los estándares de RTP/RTCP, etc. \\
+
+A modo de resumen, el hardware, software y documentación necesaria son:
+
+\paragraph{Hardware:}
+\begin{itemize}
+	\item Dos PC's.
+	\item Tarjeta de red y red \emph{IP} de área local.
+	\item Tarjeta de sonido, altavoces y micrófono.
+	\item Acceso a Internet (para obtener documentación).
+\end{itemize}
+
+\paragraph{Software:}
+\begin{itemize}
+	\item Sistema operativo GNU/Linux con kernel 2.4 o superior.
+	\item Kernel configurado que soporte la tarjeta de sonido y la LAN.
+	\item Compiladores y herramientas GNU para C: gcc, electric-fence, memprof y make.
+	\item Librerías Glib y GTK+ junto con sus cabeceras de C (``includes'').			
+	\item Herramientas de mantenimiento: diff y patch.
+	\item Analizador de red software: tcpdump y ethereal.
+	\item Editor de código fuente: FTE.
+	\item Editor de interfaces gráficas de GTK+2.0: glade-2.
+	\item Entorno de desarrollo integrado: KDevelop.
+\end{itemize}
+
+\paragraph{Documentación:}
+\begin{itemize}
+	\item Estándares para SIP y RTP/RTCP. Información de H.323.
+	\item Documentación sobre el uso de GLib y GTK+
+	\item Documentación sobre el acceso a drivers OSS.
+	\item Páginas del manual de Linux.
+\end{itemize}
+
+\subsection{Entorno de operación}
+
+El entorno de operación es el entorno en el que va a ser ejecutado el software, centrándose en lo necesario para desenvolver un funcionamiento normal. El software se puede encontrar en {\it http://asubio.sourceforge.net}, en forma de tarball comprimido. Una vez descargado, habrá que configurarlo, compilarlo e instalarlo, usando la herramienta {\it make}. Para que la compilación finalice correctamente es necesario tener instaladas en el sistema estas librerías: GLib y GTK+ (version $>=$ 2.0) y libxml-2. \\
+
+Además de todo esto, será imprescindible una tarjeta de sonido debidamente configurada y accesible. Para poder operar correctamente, es necesario una red IP, y si dentro de esa red hay un grupo de usuarios que pretenden mantener conversaciones con otros usuarios que no pertenecen a su red (ámbito), será necesario la instalación del \textbf{Proxy SSIP} que se encargue de negociar las sesiones externas. 
+
+\section{\software}
+
+Análisis del programa \software .
+
+\subsection{Arquitectura funcional}
+
+La arquitectura funcional del programa \software \  consta de las siguientes áreas funcionales:
+
+\subsubsection{Interfaz Gráfica Usuario. GUI}
+
+Será la vía de acceso de los usuarios al sistema. Se realizará como una aplicación de fondo, minimalista, por lo que debe ser pequeña y completa, debe dar la posibilidad de ejecutar diversas acciones. Cada una de estas acciones desembocará en una sucesión de cajas de diálogo que irán preguntando al usuario por todos aquellos valores requeridos. \\
+
+Deberá contener servicios de valor añadido, como por ejemplo la posibilidad de usar una libreta de direcciones -agenda de contactos- para almacenar las direcciones de otros usuarios. También sería interesante disponer de manejadores para el volumen del audio, etc.
+
+\subsubsection{Acceso, tratamiento y transmisión de audio}
+
+Es quizás la parte compleja de \software , porque representa el núcleo que implementa todas las operaciones con el sonido y la negociación de sesiones. Debe ser capaz de gestionar múltiples sesiones de forma simultánea, mediante el uso de hilos de ejecución paralelos. \\
+
+Esta parte debe estar formada por varios subsistemas que permitan dividir el desarrollo y simplificarlo. Además la aquitectura del software, será totalmente abierta, habrá tres tipos de ``plugins'' que permitirán ampliar las funcionalidades:
+\begin{description}
+	\item [Plugins de compresión de sonido. \textbf{Codec\_Plugin}.] También llamados ``codecs'' de audio ó ``vocodecs''. Cada \emph{codec} implementará un algoritmo de compresión-descompresión de audio, de esa forma, es muy fácil incorporar nuevos compresores de audio sin modificar el programa.
+	\item [Plugins de Entrada-Salida de audio. \textbf{InOut\_Plugin}.] Este tipo de plugin, será encargado de proveer las funiones de lectura y escritura de audio en el PC. Principalmente accederán a la tarjeta de sonido para capturar y reporducir el sonido. También deben contener las funciones que controlen el volumen y ganancia de los altavoces y micrófono.
+	\item [Plugins de Effectos generales. \textbf{Effect\_Plugin}.] Permiten desarrollar plugins para aumentar las funcionalidades del sistema original, podrán por ejemplo grabar conversaciones, modificar la voz del usuario, suprimir efectos de eco, etc.
+\end{description}
+
+Otras consideraciones a tener en cuenta son: 
+\begin{itemize}
+	\item Cada sesión RTP podrá tener plugins de codecs y de efectos diferentes a otras y además configurados de distinto modo.
+	\item La posibilidad de cifrar sesiones con algún algoritmo de cifrado. Se debe usar compilación condicional para crear varias versiones del programa. Así se podrá exportar a países como USA, etc.
+	\item Posicionaiento de los bytes. Linux ``corre'' en muchas arquitecturas diferentes. Existen arquitecturas con ordenamiento de bytes \emph{BIG\_ENDIAN}, los más significativos primero, como el PowerPC de Motorola (Apple) y otras con ordenamiento \emph{LITTLE\_ENDIAN}, los bytes menos significativos primero como ocurre en I386 de Intel. El programa deberá solucionar estos inconvenientes, para que la aplicación sea tan portable como lo es Linux.
+\end{itemize}
+
+\subsubsection{Gestión de la Agenda de contactos}
+
+El programa dispondrá de una agenda de contactos, para guardar a los usuarios. Será un fichero en formato XML, con el siguiente DTD:
+
+\begin{center}
+\begin{boxit}
+\begin{verbatim}
+<!DOCTYPE agenda [
+<!ELEMENT contacto (nombre[1], usuario[1], 
+			        host[1], puerto[1], 
+		            descripcion[1], foto[1])
+<!ELEMENT contacto (default*, ignore[1])>
+<!ATTLIST contacto ignore (TRUE | FALSE) #REQUIRED>
+<!ATTLIST contacto default (TRUE | FALSE) #IMPLIED>
+<!ELEMENT nombre (#PCDATA)> 
+<!ELEMENT usuario (#PCDATA)> 
+<!ELEMENT host (#PCDATA)> 
+<!ELEMENT puerto (#PCDATA)> 
+<!ELEMENT descripcion (#PCDATA)> 
+<!ELEMENT foto (#PCDATA)> 
+]>
+\end{verbatim}
+\end{boxit}
+\end{center}
+
+El usuario podrá modificar todos estos campos desde una interfaz gráfica, sin necesidad de editar manualmente el fichero XML. También podrá añadir nuevos usuarios, borrar uno existente, etc. Este fichero debe contener como mínimo un contacto, el que representa a todos los usuarios que no están en la agenda. Ese contacto define el comportamiento -aceptar o rechazar automáticamente las llamadas y la foto- con los usuarios desconocidos (los que no están en la agenda) y nunca podrá ser borrado. \\
+
+$<$ \textbf{contacto} $>$ representa un contacto de la agenda. Podrá tener dos atributos:
+\begin{itemize}
+	\item \textbf{default}: si aparece este atributo y tiene el valor de \emph{TRUE} significa que es el usuario por defecto. Siempre debe existir un usuario por defecto en el fichero para que se considere válido.
+	\item \textbf{ignore}: si aparece este atributo y tiene el valor de \emph{TRUE} significa que todas las llamadas de ese usuario serán igonradas.
+\end{itemize}
+
+Y estará compuesto obligatoriamente por los campos que se explican a continuación:
+
+\begin{itemize}
+	\item \textbf{nombre}: nombre de pila del usuario.
+	\item \textbf{usuario}: nombre del usuario en el host remoto.
+	\item \textbf{host}: máquina o dirección IP remota del usuario.
+	\item \textbf{puerto}: número de puerto SSIP en donde conectar con el usuario.
+	\item \textbf{descripcion}: descripción del usuario.
+	\item \textbf{foto}: imagen en formato {\it jpg}, {\it gif} o {\it png} del usuario.
+\end{itemize}
+
+\subsection{Requerimientos funcionales}
+
+A continuación se extienden los requisitos mínimos propuestos inicialmente y que se han apuntado en el capítulo \ref{chp:plan_proyecto}.
+
+\subsubsection{Configuración}
+
+Para poder configurar \software \  con las direcciones IP que debe usar, los puertos en los que debe escuchar, plugins y otros parámetros de registro que puede llegar a necesitar, es fundamental disponer de un sistema rápido y flexible, que no exija repetir el mismo proceso cada vez que se ejecute el programa. \\
+
+La solución a este requerimiento viene dada por un sencillo fichero de configuración, contenido un directorio reservado a tal efecto, y basado en una sintaxis simple y potente: pares etiqueta/valor. Mediante la definición de tantas etiquetas como sean necesarias se podrá configurar el programa con múltiples parámetros. \\
+
+Cada plugin, también guardará todos sus parámetros de configuración en ese mismo fichero. Por ello se debe diseñar en forma de TDA que permita acceder transparentemente al fichero.
+
+\subsubsection{Operaciones}
+
+A continuación se definen las operaciones básicas del programa:
+
+\begin{itemize}
+	 \item \textbf{Realizar una llamada de audio:} el usuario podrá iniciar una sesión RTP. Al llamar a esta función en la interfaz gráfica, ésta realizará los procedimientos oportunos que desencadenarán un traspaso de eventos bidireccional, hasta crear una sesión RTP. El usuario tendrá acceso a la agenda de contactos para elegir a quién llamar.
+	\item \textbf{Gestionar agenda de contactos:} Añadir. modificar y borrar datos de la agenda de contactos.
+	\item \textbf{Recibir una llamada de audio:} Todo comienza con un paquete de negociación SSIP, se iniciará un proceso de intercambio de eventos con la GUI para notificarle la existencia de una llamada entrante en espera. La interfaz esperará las órdenes del usuario, y en función de su respuesta, la sesión continuará ó será rechazada.
+	\item \textbf{Finalizar una llamada de audio:} mediante este procedimiento terminará una sesión RTP.
+\end{itemize}
+
+Hay varias premisas fundamentales que se deben cumplir:
+
+\begin{itemize}
+	\item Debe tener la posibilidad de manejar múltiples sesiones de forma simultánea:	Parece claro que es necesario diseñar un mecanismo para asignar como mínimo un hilo de ejecución a cada sesión. Los hilos son muy poco costosos desde el punto de vista computacional. Además, en algunos casos ciertos procedimientos pueden realizarse con la ayuda de hilos de apoyo para evitar que se conviertan en llamadas lentas y bloqueantes: como se verá más adelante, siempre interesará un comportamiento asíncrono.
+	\item El control de todo el sistema será de forma asíncrona: hay que evitar en todo momento el uso de funciones que puedan bloquear la GUI. Frente al sistema tradicional de llamadas bloqueantes, se deberá desarrollar otro, de llamadas asíncronas o no bloqueantes: un hilo (en general, cualquier hilo) ``llamará'' a un procedimiento usando un evento, y el control del programa retornará automáticamente, porque la ejecución de la rutina pedida la realizará otro hilo en paralelo. Cuando éste termine, devolverá otro evento como respuesta. Evidentemente, es más complicado usar procedimientos no bloqueantes, sobre todo porque se necesita mantener un estado muy definido, que permita saber que ha terminado la realización de un trabajo y que cuando llegue cierto evento saber qué hacer con él. 
+	\item La transmisión de audio debe ir obligatoriamente por un canal RTP, usando también el protocolo RTCP, tal y como se especifica en el RFC 1889, es decir, debe cumplir el estándar, de esta forma será posible comunicarse con usuarios de otros programas.
+	\item Minimizar el bloqueo de la tarjeta de sonido, la tarjeta de sonido sólo estará bloqueada cuando existan sesiones RTP en curso. Al aceptar o realizar una llamada, el programa deberá comprobar si puede acceder a la tarjeta de sonido.
+	\item Existirán tres tipos de plugins dependiendo de la función que se desee aportar, el más inmediato es la capacidad de soportar diferentes formatos de audio. Por lo que el soporte para un determinado formato, sera únicamente dependiente de la existencia de la correspondiente librería de carga dinámica. Como mínimo se debe desarrollar un plugin de cada tipo, para demostrar su funcionamiento. 
+	\item Se deberá considerar el desarrollo de algún sistema que permita el funcionamiento del software tanto en redes IPv4 como IPv6. También se debería aprovechar la potencia de las redes multicast para transportar el audio más fácilmente en un entorno multisesión.
+\end{itemize}
+
+\subsubsection{Interfaz Gráfica Usuario. GUI}
+
+La GUI debe ser intuitiva y cómoda. Cualquier tipo de inicidencia será mostrado por pantalla. Si una operación es crítica, se deberá advertir al usuario. Se consideran operaciones críticas:
+
+\begin{itemize}
+	\item Cerrar una sesión con un usuario.
+	\item Salir del programa.
+	\item Cambiar el plugin de entrada-salida de audio.
+	\item Cualquier cambio en la configuración que afecte a sesiones posteriores: cambio de puertos de negociación, cambio de proxy, etc.
+\end{itemize}
+
+Casi todas las ventanas de la aplicación deben ser no bloqueantes, excepto las siguientes:
+
+\begin{description}
+	\item [Agenda de contactos.] Debe permitir gestionar todos los usuarios. 
+	\item [Diálogo de conexión.] Servirá para iniciar una sesión con otro usuario. Deberá permitir lanzar la ventana de gestión de agenda de contactos y elegir a la persona con que conectar, pero, también debe permitir introducir esos datos manualmente. Se podrá especificar el ``codec'' o ``codecs'' que usar para transmitir el audio. Eventualmente, para usuarios avanzados, se considerará la posibilidad de introducir otros parámetros: puertos RTP, desabilitar SSIP, etc.
+	\item [Ventana de configuración.] Todo el sistema de configuración debe ser íntegramente gráfico y debe permitir configurar los parámetros que afectan al rendimiento de la aplicación, así como la configuración de los distintos plugins. 
+	\item [Dispositivo de audio bloqueado.] Bloqueo de la tarjeta de sonido del PC. Si el programa no puede usar el dispositivo de audio, el usuario será notificado inmediatamente, para que finalize el programa que está usando la tarjeta en ese momento.
+\end{description}
+
+Otra ventana muy importante es, la ventana de llamada entrante. El usuario deberá elegir si aceptar o no la llamada. Esta ventana debe mostrarse en primer plano y en el escritorio activo en donde se encuentre trabajando el usuario. La ventana no podrá bloquear el resto de la interfaz gráfica, pero, sólo podrá existir una ventana de este tipo, esto significa, que mientras que el usuario no acepta o rechaza la llamanda no podrán aparecer otras llamadas.
+
+\section{\textbf{Proxy SSIP}}
+
+El proxy nació de la necesidad de agrupar a varios usuarios de una red, en un único ámbito. Si todos los usuarios de la red tienen a \software \  funcionando no tendrán ningún problema para comunicarse entre ellos, ya que cada uno tiene distinta \emph{IP}.
+
+\subsection{Objeto}
+
+El problema surge cuando hay necesidad de interconectar dos redes a través de una pasarela. Esa pasarela o ``gateway'' enmascara a toda la red interna -donde están los usuarios- con su dirección \emph{IP} pública, de esa forma todos esos usuarios tendrán como \emph{IP} pública la del gateway, no la de su máquina, vistos desde una red externa. El gateway emplea un sistema llamado \emph{NAT} (Network Address Transtation) para habilitar la comunicación entre red interna y red externa. NAT funciona bien cuando en la red interna sólo hay aplicaciones cliente de servicios, como por ejemplo: navegadores web (clientes de HTTP), clientes de FTP, etc. Esto es debido a que el sistema NAT selecciona un puerto libre -al azar- que actúa como canalizador de la comunicación entre ambas redes, es importante recalcar que el puerto se elige al azar, no hay forma de predecir cual será asignado. Sólo funiona para aplicaciones cliente, porque estas aplicaciones son las que inician la comunicación; NAT se da cuenta de que se ha iniciado un proceso de comunicacion entre una máquina interna y otra externa, anota los puertos, y gracias a esos datos, es capaz de redireccionar los datagramas IP que luego se envían desde la IP externa a la interna, sustituyendo la IP del gateway en las cabeceras de los datagramas IP recibidos, por la IP de la máquina que inició la comunicación. Este proceso es totalmente transparente para el usuario. Sin embargo, si una máquina de la red interna no inicia una conexion y NAT recibe un paquete IP externo, ese paquete será descartado puesto que NAT no sabe a que máquina interna va dirigido realmente. Este último punto es que afecta a \software , cuando llama a un usuario que está enmascarado por un gateway.
+
+\subsection{Alternativas}
+
+Para este problema hay tres posibles soluciones alternativas:
+\begin{itemize}
+	\item Informar a NAT que todas las conexiones al puerto SSIP del gateway se redirigan al puerto SSIP de una máquina de la red interna. Esta sólucion sólo permitiría a un único usuario usar \software , áquel que usa la máquina a la que van redirigidos los paquetes.
+	\item Asignar a todos los usuarios de la red interna un puerto SSIP no estándar. De esta forma cada usuario tendrá un puerto distinto. El procedimiento sería el mismo que el punto anterior, pero, en vez de usar el puerto SSIP ``estándar'' habría que usar otros no estándar, uno por cada usuario. Si hay muchos usuarios en la red interna esta solución no es viable.
+	\item Construir un proxy que controle transparentemente las negociaciones del exterior. Ésta es la solución adoptada. El proxy se ejecutará en la máquina que actúa de pasarela o en otra de la red interna, pero redigiendo todas las conexiones del puerto SSIP del gateway al proxy.
+\end{itemize}
+
+\subsection{Objetivos}
+
+Dos serán las funciones del agente proxy:
+
+\begin{itemize}
+	\item Gestionar los usuarios a los que enmascarará. El proxy creará una base de datos donde guardará los datos de los usuarios que lo estén usando.
+	\item Gestionar la negociación de inicio de sesión entre los usuarios enmascarados. Para contactar con esos usuarios, el proxy será el encargado de gestionar el inicio de sesion RTP/RTCP.
+\end{itemize}
+
+\subsection{Requerimientos}
+
+A diferencia de \software \  este proxy no tendrá interfaz gráfica y estará orientado a un ``demonio'' en el sistema, es decir, se ejecutará en segundo plano, por lo que no necesitará ningún tipo de GUI -Interfaz Gráfica de Usuario-. Su trabajo será gestionar las negociaciones de los usuarios que usen el proxy. Esos usuarios no tendrán que configurar nada de este proxy, tan solo deberán conocer su \emph{IP} el puerto en donde atiende las conexiones. El administrador del sistema será el encargado de configurarlo. \\
+
+Una nota importante es que el proxy podrá tener dos \emph{IP}, una se encargaría de gestionar los usuarios -accesible desde la red interna- y la otra de gestionar la negociación de inicio de sesión -ip pública del gateway-. Los puertos de notificación y gestión SSIP deben ser distintos, aunque estén en distintas interfaces de red. El administrador podrá interrumpir el proceso de gestión de usuarios, para evitar que se den de alta o baja otros usuarios, lo cual indica que ambos procesos serán totalmente independientes.
+
+Al igual que ocurre con \software, se deberá considerar el desarrollo de algún sistema que permita el funcionamiento del software tanto en redes IPv4 como IPv6.
+
+Otros requerimientos que deberá cumplir el software son:
+
+\subsubsection{Seguridad}
+
+Debido a su situación en la red (enlace entre dos redes), se deberá tener mucho cuidado en su diseño e implementación. Cualquier fallo podrá ser explotado por un usuario mal intencionado con distintos tipos de ataques: ataques de denegación de servicio ó DoS (Denial of Service); ataques de ``buffer overflow'' ó desbordamiento de buffer, etc. Por esa razón deberá guardar todos los datos posibles de las conexiones e incidencias que se produzcan durante su ejecución. De está forma se podrá seguir la pista de errores o de los posibles atacantes.
+
+\subsubsection{Gestión de usuarios}
+
+La gestión de los usuarios consiste en controlar el número de usuarios a los que enmascara. El proxy creará una base de datos donde guardará los datos de todos los usuarios que estén online. La base de datos debe ser accesible por el administrador en cualquier momento y el formato debe ser legible (texto ascii), no puede ser formato binario. Esto es así, para que el operador-administrador pueda borrar o modificar manualmente los parámetros de los usuarios. Será necesario definir o usar un protocolo de comunicación simple que se encarge de gestionar la comunicación de alta (online) o baja (offline) de usuarios.
+
+\subsubsection{Gestión de negociación de inicio de sesión}
+
+Deberá controlar y asistir la negociación de sesión para todos los usuarios a los que enmascara. Para ello,
+ante una llamada correcta, deberá buscar el usuario al que se va dirigido en la base de datos, si no existe o no está online, se finalizará el proceso. En otro caso, es decir, si el usuario existe y los parámetros que existen en la base de datos son correctos (el programa del usuario está en el puerto SSIP almacenado, etc.), debe enlazar a modo de proxy la conexión entre el cliente que llama con el cliente al que se dirige la llamada. Durante esta situación, no se pueden bloquear otras llamadas entre otros usuarios. \\
+
+Este subsistema debe ser compatible con la negociación propuesta entre clientes \software . Para ello debe usar el protocolo SSIP, definido para ese menester, en el capítulo de diseño.
+
+\subsubsection{Configuración}
+
+Toda los parámetros mínimos de configuración del proxy deben ser:
+
+\begin{description}
+	\item [Dirección IP del subsitema de gestión de usuarios]: especifica la interfaz de red en la que recibirán las notificaciones de alta o baja de usuarios (subsistema de negociación).
+	\item [Número de puerto del subsitema de gestión de usuarios]: especifica el puerto en que negociará el subsistema de gestión de usuarios.
+	\item [Dirección IP del subsitema de negociación de inicio de sesión]: especifica la interfaz de red en la que negociará el inicio de sesión para los usarios activos.
+	\item [Número de puerto del subsitema de negociación de inicio de sesión]: es el puerto en que negociará la negociación de inicio de sesión.
+\end{description}
+
+Para poder configurar el proxy con las direcciones IP que debe usar, los puertos en los que debe escuchar, los parámetros de registro que puede llegar a necesitar, etc., es fundamental disponer de un sistema rápido y flexible, que no exija repetir el mismo proceso cada vez que se ``lanze'' el proxy. Se podrán incorporar otros parámetros en el fichero de configuración para otros requerimientos del programa, como puede ser algún tipo de limitación en el número de usuarios, etc.
+
+
+\section{Método y tecnologías de trabajo}
+
+Debido a la naturaleza de este proyecto, se optó por usar C como lenguaje de programación. Hay que tener en mente que en este proyecto importa mucho el tiempo de proceso. El audio es un flujo continúo de datos que deben se atendido regularmente, si el proceso es muy lento, se producirían cortes que imposibilitarían la comunicación. Este es un proyecto de tiempo real, la carga de trabajo del sistema también puede influir, si el sistema tiene muchos procesos, probablemente también se producirán cortes. Se eligió C como lenguaje de desarrollo por las siguientes razones:
+
+\begin{itemize}
+	\item Todas las llamadas al sistema están implementadas en C. No cabe duda de que en este campo C/C++ sale ganando, porque la mayor parte de las APIs de sistema están escritas en C. También se puede hacer esto desde Java y C\#, pero entonces se perderían sus ventajas en portabilidad (ese código en C llamado desde Java sólo sería válido para un sistema concreto) y en seguridad, ya que se trataría de código ejecutado fuera de la máquina virtual y del CLR, respectivamente.
+	\item Portabilidad. Característica importante tanto en Java como en C\#, facilita la implantación del sistema en diferentes máquinas, haciendo posible la expansión del mismo. Sin embargo, ya se ha comentado ciertos aspectos sobre la portabilidad de las dos arquitecturas anteriores: es una característica muy deseable, pero también utópica si lo que se busca es acceso a drivers de bajo nivel, como los relacionados con el audio. Además el código en C puede ser recompilado (usando compilación condicional) para varias arquitecturas.
+	\item Entorno de programación disponible. No cabe duda de que un programador en Linux, dispone de muchas herramientas de desarrollo, sobre todo en C. Desda la ``suite'' de \emph{GNU} gcc, hasta completos entornos gráficos como KDevelop.
+	\item C es un lenguaje que permite una programación estructurada y que presenta un elevado rendimiento a la hora de hacer aplicaciones críticas en el tiempo, como es éste caso.
+\end{itemize}
+
+A continuación se detalla una relación de las librerías que se van a emplear en el proyecto, con sus características y junto a la justificación de su elección para este proyecto.
+
+\subsection{Glib, Gtk+ y libxml2}
+
+A continuación se detalla una breve introducción con las características uso estas librerías, que ayudan a razonar el por qué de su elección y uso en el proyecto.
+
+\subsubsection{Introducción a Glib y Gtk+}
+
+La librería Gtk fue desarrollada como parte de GIMP. GIMP es un programa de dibujo muy potente y su nombre es un acrónimo de {\it Graphical Image ManiPulation}. GTK significa GIMP Toolkit y fue creado para crear los elementos gráficos (widgets) de GIMP, es decir, los botones, menús, iconos, etc. Posteriormente GTK fue liberada como una librería independiente de GIMP. Más tarde apareció el proyecto GNOME, GNU Network Object Model Environment - entorno de trabajo en red orientado a objetos- , con la idea de crear un entorno libre y potente para desarrollar aplicaciones gráficas. GNOME usó GTK para su sistema gráfico y comenzó a mejorarla y a desarrollar nuevas librerías. De ese empeño surgieron GLib y GTK+, posteriormente se desarrollaron librerías como libxml2, libgda/gnome-db, gnome-print, etc.
+
+\subsubsection{Características}
+
+Todo el proyecto GNOME, y por extensión sus librerías estan desarrolladas en el lenguaje C, implementando un sistema de Orientación a Objetos (OO). Las principales características que aportan Glib, GTK+ y libxml2 son:
+
+\paragraph{Glib}
+
+Es una librería que contiene multitud de funcionalidades necesarias prácticamente en todos los programas, a la vez que incluye otras funcionalidades de más alto nivel, como es, por ejemplo, el sistema de objetos. Se podría definir Glib como una librería de ayuda para la programación en C. Sus Características más destacables son:
+
+\begin{itemize}
+	\item Crea una capa de abstracción de las diferencias entre sistemas, lo que permite que los programas que la usen, sean portables entre distintos sistemas operativos. Actualmente soporta: MS Windows, OS/2, BeOS y sistemas Unix (Linux, FreeBSD, etc.).
+	\item Tipos de datos portables, por ejemplo, garantiza que un entero de 4 bytes en plataformas de 32 bits, siga teniendo 4 bytes de tamaño en plataformas de 64 bits.
+	\item Posee sus propias funciones de gestión de memoria.
+	\item Tiene estructuras de datos (listas enlazadas, arrays, etc), que implemtan TDA (Tipos Abstractos de Datos).
+	\item Bucle de ejecución, con eventos (E/S, alarmas, temporizadores, etc).
+	\item Sistema de objetos, facilita la creación y manejo de objetos.
+	\item Sistema de creación y manejo de threads (hilos de ejecución o procesos ligeros), con funciones de control (semáforos, etc.)
+	\item Totalmente conforme al estándar ANSI C y POSIX.
+\end{itemize}
+
+Gracias al empleo de Glib, se garantiza la portabilidad, entre multitud de sistemas. Además, todas sus funciones son compatibles con POSIX. La aplicación podrá ser portable hasta para entornos MS Windows. Por ejemplo, gracias al subsistema \emph{GModule} resulta fácil desarrollar programas con carga dinámica de módulos o \emph{plugins}, ya que independizan totalmente el entorno de programación y de ejecución, es decir, a la hora de crear un módulo, si está en una plataforma Windows usaría DDL's, mientras en plataformas Unix, crearía librerías dinámicas de enlace; igualemnte, para cargar un módulo en sistemas Windows buscaría archivos con estensión {\it ddl}, mientras que en sistemas Unix, buscaría archivos con extensión {\it so}. Con los Threads sucede algo parecido.
+
+
+\paragraph{GTK+}
+
+Ofrece todo lo necesario para el desarrollo de interfaces gráficas, desde los "widgets" más básicos (botones, cajas de texto, menús, ventanas, etc) hasta otros mucho más complejos y elaborados que son de gran ayuda a la hora de programar aplicaciones gráficas. GTK+ está a su vez separado en varias librerías, algunas de ellas sólo disponibles para la versión 2.0 y posteriores: 
+
+\begin{description}
+	\item[GDK], implementa el nivel más bajo de la arquitectura, es decir, las primitivas gráficas. Es una librería que forma una capa sobre la implementación gráfica real (X Window, MS Windows, Mac OS X), y es por tanto la única parte de GTK+ que tiene que ser reescrita para soportar otra plataforma/sistema operativo. Es por esta razón por que ya ha sido portada a varios entornos (X Window, MS Windows, QNX, BeOS, etc.).
+	\item[gdk-pixbuf] es la librería que permite el tratamiento de imágenes gráficas. Esta librería permite el tratamiento (carga, visualización, grabación) de imágenes gráficas en distintos formatos (png, gif, jpeg, etc). 
+	\item[Pango] es la parte que se encarga de la renderización de texto, permite la representación de caracteres en distintos alfabetos (occidental, cirilico, árabe, chino, etc), permite añadirle atributos al texto (cursiva, subrayado, color de fondo, etc), etc. Supone uno de los pasos más importantes dentro del proyecto GNOME para la universalización del software libre. 
+	\item[ATK] es una librería de clases abstractas cuyo objetivo es servir de base para el desarrollo de aplicaciones accesibles para personas con deficiencias físicas. Es un desarrollo de la empresa Sun, pues forma parte de su estrategia de inclusión de GNOME en entornos Solaris.
+\end{description}
+
+\paragraph{Libxml2}
+
+Esta librería interpreta datos en formato XML. Es una de las mejores librerías para procesar XML. Está implementada en C y, como se mencionó anteriormente, forma parte del proyecto GNOME. Puede procesar
+DTD's, generar árboles DOM, procesar flujos de datos en formato XML (SAX), etc. Por estas razones se utilizó en el proyecto para procesar la agenda de contactos.
+
+\subsection{Acesso a red}
+
+Para la implementación de las funciones de acceso a la red IP se optó por la API de Sockets (Berkeley sockets), desarrollada por la Universidad de Berkeley, en deprimento de la TLI (Transport Layer Interface, desarrollada en los laboratorios AT\&T), ya que la primera es la más conocida y usada en el mundo Linux. Además permite trabajar perfectamente con IPv6 e IPv4 y con redes multicast.
+
+\subsection{Librería RTP/RTCP}
+
+Para la conexión RTP, se empleó una librería procedente del proyecto VAT, pero modificándola sensiblemente. Se eligió esta librería por todas estas razones: 
+
+\begin{itemize}
+	\item Soporta completamente y cumple el estándar RTP. Además, también, cumple completamente con las especificaciones del protocolo RTCP.
+	\item Está programada en lenguaje C y tiene una implementación muy eficiente.
+	\item Es {\it open source} (código libre) y esta bajo la licencia GPL.
+\end{itemize}
+
+Una vez elegida librería, fue necesario realizar una auditoría de su código, lo que provocó una serie de cambios para adaptarla a este proyecto:
+
+\begin{itemize}
+	\item Incorporación de Glib. Los tipos de datos originales se sustituyeron por los ofrecidos por Glib, también se hizo lo propio con determinadas funciones, sustituidas por sus correspondientes en Glib, así se ganó en portabilidad entre sistemas. Se incorporó el sistema de control de errores \emph{GError}.
+	\item Redefinición del sistema de eventos y \emph{callbacks}. Originalmente todas los eventos (llegada de paquetes RTP, RTCP, etc.) eran gestionados por un mismo callback, lo que provocaba que la librería no se podía paralelizar. Al añadir un segundo callback se separó la parte de RTP de la parte de gestión RTCP, de forma que se logró que la librería pueda ser usada en varios hilos de ejecución simultáneamente.
+	\item Corrección de {\it bugs} y eliminación de código superfluo. Al usar el sistema de control de errores de Glib, se pudo prescindir de varias funciones. También se corrigieron errores y se completaron funciones inacabadas en las partes de iniciación y finalización del cifrado de sesión con el algoritmo DES.
+	\item Estructuración adecuada del código. Al principio, toda la librería estaba implementada en un único fichero. Este fichero se fragmetó, estructurando las funciones por su funcionalidad en varios ficheros.
+\end{itemize}
+
+Tras la realización de estos cambios, la librería ya estubo preparada para su incorporación al proyecto.
+
+\subsection{Sonido}
+
+El acceso a la tarjeta de sonido en Linux, para capturar y reproducir el audio y para controlar el volumen y ganacia, se pueden realizar con dos API's. Sus caraterísticas se detallan a continuación.
+
+\subsubsection{Open Sound System. OSS}
+
+El Sistema Abierto de Sonido es un conjunto de drivers, de dispositivo para tarjetas de sonido y otros elementos de audio, escrito para varios sistemas de tipo UNIX y UNIX-compatibles. Las versiones actuales de OSS se ejecutan en más de una docena de sistemas operativos distintos y soportan las tarjetas de sonido más populares y la mayoría de chips de audio integrados en las placas base de los ordenadores actuales.
+
+Las tarjetas de sonido tienen generalmente distintos dispositivos ó puertos que reproducen ó graban audio. Aunque existen grandes diferencias entre todo el hardware disponible, OSS unifica todos los puertos a un pequeño conjunto. Comentamos dos de ellos, el de audio digitalizado (DSP) y el mezclador (mixer), que son los que se aplican a este proyecto, dejando de lado otros como el sintetizador ó la interfaz MIDI.
+
+El dispositivo de audio digitalizado (también llamado DSP ó dispositivo de conversión analógico-digital ADC/DAC) se usa para grabar y reproducir sonido digitalizado, en forma de muestras tomadas a intervalos regulares de tiempo. Como es sabido, la calidad del audio dependerá del intervalo entre muestras y del número de bits para representar cada muestra.
+
+Sin embargo, uno de los aspectos más importantes a la hora de trabajar con OSS es el hecho de que no se puede abrir varias veces el dispositivo. Como se puede suponer, este hecho es de vital importancia para el proyecto, que deberá contar con mecanismos para grabar y reproducir al mismo tiempo, con el objetivo de dar idea de fluidez en la conversación (una conversación humana normal es full-duplex).
+
+El dispositivo mezclador (mixer) se usa para controlar el volumen de varios puertos de entrada y salida. Además, el mixer es el encargado de seleccionar las fuentes de sonido entre el micrófono, la entrada de línea y la entrada del disco compacto (CD).
+
+En resumen, OSS tiene como ventajas: la facilidad de su uso, el hecho de que los drivers vienen integrados en el propio código del kernel y el gran número de tarjetas soportadas.
+
+
+\subsubsection{Advanced Linux Sound Architecture. ALSA}
+
+La Arquitectura de Sonido Avanzada Linux es un proyecto desarrollado para el sistema operativo GNU/Linux bajo las licencias GPL y LGPL con los siguientes objetivos:
+
+\begin{itemize}
+	\item Crear un conjunto de drivers de dispositivo totalmente modularizados que soporten kerneld y kmod (sistema de módulos de Linux).
+	\item Crear la API ALSA a nivel de Kernel, que deje obsoleta la API actual, basada en OSS.
+	\item Mantener la compatibilidad con la mayoría de los drivers OSS.
+	\item Crear la librería ALSA en C y C++, que simplifique el proceso de creación de aplicaciones que usen este sistema para acceder a los recursos de audio.
+	\item Crear un programa en espacio de usuario para configurar el driver de forma interactiva llamado "ALSA Manager".
+\end{itemize}
+
+Como se puede comprobar, ALSA es la evolución natural de OSS. En primer lugar porque dota de mejores servicios a los usuarios del driver, implementando de mejor forma que en OSS las características de full-duplex, y también porque, mientras que el acceso a OSS se realizaba con las funciones típicas de acceso al sistema de ficheros (open, read, write y close) e 'ioctl' para controlar el dispositivo, ALSA cuenta con una API de alto nivel, accesible desde C ó C++, usando funciones sencillas. \\
+
+
+Tras evaluar las características, para el acesso al sonido, en este proyecto se empleó el sistema OSS, ya que, los principales problemas a los que se enfrenta ALSA son, por una parte, la escasa cantidad de tarjetas de sonido soportadas, y por otra el hecho de que los drivers no se distribuyen con el árbol de código del kernel. Es decir, es necesario parchear el kernel de Linux con el código de los drivers ALSA, recompilarlo e instalarlo, operaciones no tribiales para muchos usuarios. \\
+
+
+\subsection{Cifrado con DES}
+
+Para cifrar una sesión se emplea DES. El estándar de RTP, junto con otros borradores (\emph{drafts}), lo contempla como uno de los algoritmos para cifrar RTP/RTCP. Otras características por las que ha sido elegido son: principalmente por su rápida ejecución; es uno de los algoritmos de cifrado más extendido y presenta una fiabilidad suficiente para esta aplicación. \\
+
+Para el algoritmo DES, se empleó una librería creada por {\it Saleem L. Bhatti} en Febrero de 1993, pero parcheadas  para Linux por cortesía de {\it Mark Handley \& George Pavlou} en Agosto de 1996. \\
+
+La compilación con estas librerías es condicional, ya que existen países cuya legislación impide el uso del algoritmo DES.
+
+\section{Proceso de negociación de inicio de sesión}
+
+Para la necogiación de inicio de sesión había dos alternativas: SIP y H.323. Sin embargo se decidió crear un protocolo llamado SSIP (Simple Session Initiation Protocol), por las siguientes razones:
+
+\begin{itemize}
+	\item H.323 es un protocolo muy complejo y grande, además es necesario comprar el estándar (no es libre), aunque existen implementaciones abiertas. Posee limitaciones de uso con NAT, es muy poco flexible y difícil de depurar, ya que tiene un formato binario. También es muy rígido con el uso de codecs de audio.
+	\item SIP es un protocolo muy simple, pero todavía no existen implementaciones que conjuntamente con SDP, permitar crear fácilmente un sistema de negociación de inicio de sesión, es decir un ``User Agent''. La contrucción de una librería que implemente un \emph{UA}, puede constituir por sí sólo un Proyecto Fin de Carrera nuevo, por lo que se escapa de este proyecto.
+	\item Ambos protocolos negocian la sesion usando UDP, aunque SIP puede ir sobre TCP, todavía no hay implementaciones que lo usen. El hecho de ir sobre UDP, implica un proceso más complicado de negociación.
+\end{itemize}
+
+SSIP es una mezcla de SIP y H.323. Es un protocolo binario que va sobre TCP, pero su funcionamiento es muy simple. Su principal cometido es crear un sistema que permita usar \software \  detrás de NAT. En el futuro, como ampliación, se podría sustituir el protocolo SSIP por SIP, implementando un agente de usuario (UA). \\
+
+Las especificaciones de SSIP se detallan en el capítulo de Diseño.
+
+\section{Otras consideraciones}
+
+En esta sección se comentarán algunos puntos de las especificaciones del sistema que no se han abordado en apartados anteriores:
+
+\subsection{Licencia de distribución del código}
+
+El código fuente escrito en C que constituye este proyecto (junto con el sistema de empaquetado y las posibles imágenes e iconos adjuntos) se distribuirá bajo la licencia general pública del Proyecto GNU, denominada GPL (GNU General Public License). Se puede leer esta licencia en {\it http://www.gnu.org/copyleft/gpl.html} \\
+
+Dicha licencia permite que cualquier persona acceda, use y modifique el código presentado, siempre manteniendo el nuevo código así generado también bajo la licencia GPL. Sin embargo, este sistema de ``Copyleft'' no altera la propiedad intelectual que el autor de este proyecto tiene sobre todo el código escrito directamente por él (``Copyright''). 
+
+\subsection{Distribución del proyecto}
+
+Este proyecto se encuentra disponible al público en forma de código fuente en la dirección de Internet {\it http://asubio.sourceforge.net} Esta dirección pertenece a una cuenta creada para este proyecto en OSDN (Open Source Development Network), una red que ofrece servicios de hosting a proyectos de software siempre que sean libres y de código abierto. \\
+
+Dicha cuenta sirve de referencia para el proyecto, ya que en ella se proporcionan gran cantidad de servicios que ayudan al desarrollo distribuido y al mantenimiento del código:
+
+\begin{itemize}
+	\item Crear de listas de correo a las que se podrán subscribir todos aquellos interesados en el desarrollo y en el uso del software.
+	\item Distribuir el proceso de escritura del código mediante el uso de un servidor CVS que coordinará la tarea de desarrollo y la hará pública.
+	\item Posibilidad de publicación de bugs y de distribución los parches que los solucionen.
+	\item Control de las descargas y de las versiones del proyecto.
+\end{itemize}
+

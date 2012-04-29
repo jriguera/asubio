@@ -1,0 +1,104 @@
+\BOOKMARK [0][-]{chapter.1}{Introducci\363n}{}
+\BOOKMARK [1][-]{section.1.1}{Pr\363logo}{chapter.1}
+\BOOKMARK [1][-]{section.1.2}{Organizaci\363n y contenido de esta memoria}{chapter.1}
+\BOOKMARK [0][-]{chapter.2}{Plan de proyecto}{}
+\BOOKMARK [1][-]{section.2.1}{An\341lisis de viabilidad}{chapter.2}
+\BOOKMARK [2][-]{subsection.2.1.1}{Descripci\363n}{section.2.1}
+\BOOKMARK [2][-]{subsection.2.1.2}{Objeto}{section.2.1}
+\BOOKMARK [2][-]{subsection.2.1.3}{Objetivos}{section.2.1}
+\BOOKMARK [2][-]{subsection.2.1.4}{Requerimientos y recursos}{section.2.1}
+\BOOKMARK [2][-]{subsection.2.1.5}{Sistema de Control}{section.2.1}
+\BOOKMARK [2][-]{subsection.2.1.6}{Elementos de riesgo}{section.2.1}
+\BOOKMARK [2][-]{subsection.2.1.7}{Beneficios}{section.2.1}
+\BOOKMARK [2][-]{subsection.2.1.8}{Conclusiones}{section.2.1}
+\BOOKMARK [1][-]{section.2.2}{Antecedentes}{chapter.2}
+\BOOKMARK [2][-]{subsection.2.2.1}{Estado del arte}{section.2.2}
+\BOOKMARK [2][-]{subsection.2.2.2}{Proyectos similares}{section.2.2}
+\BOOKMARK [0][-]{chapter.3}{An\341lisis tecnol\363gico}{}
+\BOOKMARK [1][-]{section.3.1}{Tratamiento del sonido}{chapter.3}
+\BOOKMARK [2][-]{subsection.3.1.1}{Ac\372stica}{section.3.1}
+\BOOKMARK [2][-]{subsection.3.1.2}{Psicoac\372stica}{section.3.1}
+\BOOKMARK [2][-]{subsection.3.1.3}{Modulaci\363n de audio}{section.3.1}
+\BOOKMARK [2][-]{subsection.3.1.4}{Compresi\363n de audio}{section.3.1}
+\BOOKMARK [2][-]{subsection.3.1.5}{Otras consideraciones}{section.3.1}
+\BOOKMARK [1][-]{section.3.2}{Protocolo de Internet. IP}{chapter.3}
+\BOOKMARK [2][-]{subsection.3.2.1}{Introducci\363n}{section.3.2}
+\BOOKMARK [2][-]{subsection.3.2.2}{Rendimiento de IP}{section.3.2}
+\BOOKMARK [2][-]{subsection.3.2.3}{Protocolo de Control de Transferencia. TCP}{section.3.2}
+\BOOKMARK [2][-]{subsection.3.2.4}{Protocolo de Datagramas de Usuario. UDP}{section.3.2}
+\BOOKMARK [2][-]{subsection.3.2.5}{Unicast versus Multicast}{section.3.2}
+\BOOKMARK [2][-]{subsection.3.2.6}{IPv6, la pr\363xima generaci\363n IP}{section.3.2}
+\BOOKMARK [2][-]{subsection.3.2.7}{RFC's de IP}{section.3.2}
+\BOOKMARK [1][-]{section.3.3}{RTP/RTCP}{chapter.3}
+\BOOKMARK [2][-]{subsection.3.3.1}{Introducci\363n}{section.3.3}
+\BOOKMARK [1][-]{section.3.4}{Negociaci\363n de la sesi\363n}{chapter.3}
+\BOOKMARK [2][-]{subsection.3.4.1}{SIP versus H.323}{section.3.4}
+\BOOKMARK [2][-]{subsection.3.4.2}{SDP}{section.3.4}
+\BOOKMARK [1][-]{section.3.5}{XML}{chapter.3}
+\BOOKMARK [2][-]{subsection.3.5.1}{Est\341ndares XML}{section.3.5}
+\BOOKMARK [1][-]{section.3.6}{Data Encryption Standard. DES}{chapter.3}
+\BOOKMARK [0][-]{chapter.4}{An\341lisis de requisitos}{}
+\BOOKMARK [1][-]{section.4.1}{Consideraciones previas}{chapter.4}
+\BOOKMARK [1][-]{section.4.2}{Visi\363n general}{chapter.4}
+\BOOKMARK [2][-]{subsection.4.2.1}{Entorno de desarrollo}{section.4.2}
+\BOOKMARK [2][-]{subsection.4.2.2}{Entorno de operaci\363n}{section.4.2}
+\BOOKMARK [1][-]{section.4.3}{Asub\355o}{chapter.4}
+\BOOKMARK [2][-]{subsection.4.3.1}{Arquitectura funcional}{section.4.3}
+\BOOKMARK [2][-]{subsection.4.3.2}{Requerimientos funcionales}{section.4.3}
+\BOOKMARK [1][-]{section.4.4}{Proxy SSIP}{chapter.4}
+\BOOKMARK [2][-]{subsection.4.4.1}{Objeto}{section.4.4}
+\BOOKMARK [2][-]{subsection.4.4.2}{Alternativas}{section.4.4}
+\BOOKMARK [2][-]{subsection.4.4.3}{Objetivos}{section.4.4}
+\BOOKMARK [2][-]{subsection.4.4.4}{Requerimientos}{section.4.4}
+\BOOKMARK [1][-]{section.4.5}{M\351todo y tecnolog\355as de trabajo}{chapter.4}
+\BOOKMARK [2][-]{subsection.4.5.1}{Glib, Gtk+ y libxml2}{section.4.5}
+\BOOKMARK [2][-]{subsection.4.5.2}{Acesso a red}{section.4.5}
+\BOOKMARK [2][-]{subsection.4.5.3}{Librer\355a RTP/RTCP}{section.4.5}
+\BOOKMARK [2][-]{subsection.4.5.4}{Sonido}{section.4.5}
+\BOOKMARK [2][-]{subsection.4.5.5}{Cifrado con DES}{section.4.5}
+\BOOKMARK [1][-]{section.4.6}{Proceso de negociaci\363n de inicio de sesi\363n}{chapter.4}
+\BOOKMARK [1][-]{section.4.7}{Otras consideraciones}{chapter.4}
+\BOOKMARK [2][-]{subsection.4.7.1}{Licencia de distribuci\363n del c\363digo}{section.4.7}
+\BOOKMARK [2][-]{subsection.4.7.2}{Distribuci\363n del proyecto}{section.4.7}
+\BOOKMARK [0][-]{chapter.5}{Diseno}{}
+\BOOKMARK [1][-]{section.5.1}{Software Asub\355o}{chapter.5}
+\BOOKMARK [2][-]{subsection.5.1.1}{Interfaz Gr\341fica de Usuario. GUI}{section.5.1}
+\BOOKMARK [2][-]{subsection.5.1.2}{Acceso a red}{section.5.1}
+\BOOKMARK [2][-]{subsection.5.1.3}{Acceso al fichero de configuraci\363n}{section.5.1}
+\BOOKMARK [2][-]{subsection.5.1.4}{Procesador de audio}{section.5.1}
+\BOOKMARK [2][-]{subsection.5.1.5}{Doble buffer de audio}{section.5.1}
+\BOOKMARK [2][-]{subsection.5.1.6}{Plugins}{section.5.1}
+\BOOKMARK [1][-]{section.5.2}{Concepto de sesi\363n}{chapter.5}
+\BOOKMARK [2][-]{subsection.5.2.1}{Subsistema RTP/RTCP}{section.5.2}
+\BOOKMARK [1][-]{section.5.3}{Simple Session Initiation Protocol. SSIP}{chapter.5}
+\BOOKMARK [1][-]{section.5.4}{Proxy SSIP}{chapter.5}
+\BOOKMARK [2][-]{subsection.5.4.1}{Configuraci\363n}{section.5.4}
+\BOOKMARK [2][-]{subsection.5.4.2}{Subsistema de control de usuarios}{section.5.4}
+\BOOKMARK [2][-]{subsection.5.4.3}{Subsistema de negociaci\363n}{section.5.4}
+\BOOKMARK [2][-]{subsection.5.4.4}{Control de concurrencia}{section.5.4}
+\BOOKMARK [2][-]{subsection.5.4.5}{Seguridad}{section.5.4}
+\BOOKMARK [0][-]{chapter.6}{Implementaci\363n}{}
+\BOOKMARK [1][-]{section.6.1}{Organizaci\363n en directorios}{chapter.6}
+\BOOKMARK [1][-]{section.6.2}{Algoritmos y arquitectura}{chapter.6}
+\BOOKMARK [1][-]{section.6.3}{C\363digo compartido}{chapter.6}
+\BOOKMARK [2][-]{subsection.6.3.1}{Fichero de configuraci\363n}{section.6.3}
+\BOOKMARK [2][-]{subsection.6.3.2}{TDA's de acceso a red}{section.6.3}
+\BOOKMARK [2][-]{subsection.6.3.3}{Negociaci\363n SSIP y NOTIFY}{section.6.3}
+\BOOKMARK [1][-]{section.6.4}{Plugins}{chapter.6}
+\BOOKMARK [2][-]{subsection.6.4.1}{InOut Plugin}{section.6.4}
+\BOOKMARK [2][-]{subsection.6.4.2}{Effect Plugin}{section.6.4}
+\BOOKMARK [2][-]{subsection.6.4.3}{Codec Plugin e implementaci\363n OO de herencia}{section.6.4}
+\BOOKMARK [1][-]{section.6.5}{Procesador de Audio}{chapter.6}
+\BOOKMARK [1][-]{section.6.6}{Doble buffer de audio}{chapter.6}
+\BOOKMARK [1][-]{section.6.7}{Proceso RTP/RTP}{chapter.6}
+\BOOKMARK [1][-]{section.6.8}{Tratamiento de XML}{chapter.6}
+\BOOKMARK [1][-]{section.6.9}{Proxy SSIP}{chapter.6}
+\BOOKMARK [1][-]{section.6.10}{Otras consideraciones}{chapter.6}
+\BOOKMARK [0][-]{chapter.7}{Pruebas, resultados y rendimiento}{}
+\BOOKMARK [1][-]{section.7.1}{Pruebas y resultados del software}{chapter.7}
+\BOOKMARK [1][-]{section.7.2}{Rendimiento}{chapter.7}
+\BOOKMARK [0][-]{chapter.8}{Conclusiones}{}
+\BOOKMARK [1][-]{section.8.1}{Concordancia entre resultados y objetivos}{chapter.8}
+\BOOKMARK [1][-]{section.8.2}{Comparativa con otros programas}{chapter.8}
+\BOOKMARK [1][-]{section.8.3}{Mejoras y ampliaciones}{chapter.8}
+\BOOKMARK [1][-]{section.8.4}{Conclusiones del proyecto}{chapter.8}

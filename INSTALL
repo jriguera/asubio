@@ -1,0 +1,9 @@
+Basic Installation
+==================
+
+It is not necessary any installation, just launch it by typing ./asubio [configfile] .
+A default configuration file will be created in $HOME/.asubio .
+You can edit the configuration file with your favourite editor.
+
+José Riguera <jriguera@gmail.com>
+

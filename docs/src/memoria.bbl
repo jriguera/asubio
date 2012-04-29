@@ -1,0 +1,79 @@
+\begin{thebibliography}{10}
+
+\bibitem{Tennenhouse}
+D.~D. Clark and D.~L. Tennenhouse.
+\newblock Architectural considerations for a new generation of protocols.
+\newblock 1990.
+
+\bibitem{IETF}
+Internet Engineering~Task Force.
+\newblock Ietf.
+\newblock http://www.ietf.org, 2000.
+
+\bibitem{GOO}
+Google.
+\newblock Google.
+\newblock http://www.google.com, 2000.
+
+\bibitem{SDP_RFC}
+M.~Handley and V.~Jacobson.
+\newblock Sdp: Session description protocol.
+\newblock http://www.faqs.org/rfcs/rfc2327.html, 1998.
+
+\bibitem{REVO}
+Jesús Bobadilla Sancho y Pedro Gómez~Vilda Jesús Bernal~Bermúdez.
+\newblock {\em Reconocimiento de voz y fonética acústica}.
+\newblock Ra-Ma, 2000.
+
+\bibitem{Liu98}
+C.~Liu.
+\newblock Multimedia over {IP}: {RSVP}, {RTP}, {RTCP}, {RTSP}.
+\newblock {\em Technical Report, Ohio State University}, January 1998.
+
+\bibitem{RAT}
+UCL Multimedia.
+\newblock Rat.
+\newblock http://www-mice.cs.ucl.ac.uk/multimedia/software/rat/, 2000.
+
+\bibitem{Nichols:1996:PP}
+Bradford Nichols, Bick Buttlar, and Jackie~Proulx Farrell.
+\newblock {\em {Pthreads} Programming}.
+\newblock O'Reilly \& Associates, Inc., 981 Chestnut Street, Newton, MA 02164,
+  USA, 1996.
+
+\bibitem{RTP_RFC}
+H.~Schulzrinne, S.~Casner, R.~Frederick, and V.~Jacobson.
+\newblock Rtp: A transport protocol for real-time applications.
+\newblock http://www.faqs.org/rfcs/rfc1889.html, 1996.
+
+\bibitem{Stevens90a}
+Richard~W Stevens.
+\newblock {\em {U}{N}{I}{X} Network Programming}.
+\newblock Software Series. Prentice Hall PTR, 1990.
+
+\bibitem{OSS}
+Open~Sound System.
+\newblock Oss.
+\newblock http://www.opensound.com, 2000.
+
+\bibitem{ITU}
+International~Telecommunication Union.
+\newblock Itu.
+\newblock http://www.itu.int/home/, 2000.
+
+\bibitem{KW}
+Kurt Wall.
+\newblock {\em Programación en Linux con ejemplos}.
+\newblock McGraw-Hill, 1 edition, 2000.
+
+\bibitem{IVD}
+José Manuel Huidobro~Moya y~David Roldán~Martínez.
+\newblock {\em Integración de voz y datos}.
+\newblock McGraw-Hill, 1 edition, 2003.
+
+\bibitem{Jon}
+Jonathan~Davidson y~James~Peters.
+\newblock {\em Fundamentos de voz sobre IP}.
+\newblock Cisco Press, 2001.
+
+\end{thebibliography}

@@ -1,0 +1,16 @@
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {6.1}Organizaci\'on en directorios}{\reset@font\mtcSfont 94}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {6.2}Algoritmos y arquitectura}{\reset@font\mtcSfont 95}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {6.3}C\'odigo compartido}{\reset@font\mtcSfont 96}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {6.3.1}Fichero de configuraci\'on}{\reset@font\mtcSSfont 96}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {6.3.2}TDA's de acceso a red}{\reset@font\mtcSSfont 97}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {6.3.3}Negociaci\'on \emph {SSIP} y \emph {NOTIFY}}{\reset@font\mtcSSfont 100}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {6.4}Plugins}{\reset@font\mtcSfont 103}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {6.4.1}\emph {InOut} Plugin}{\reset@font\mtcSSfont 103}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {6.4.2}\emph {Effect} Plugin}{\reset@font\mtcSSfont 105}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {6.4.3}\emph {Codec} Plugin e implementaci\'on OO de herencia}{\reset@font\mtcSSfont 107}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {6.5}Procesador de Audio}{\reset@font\mtcSfont 112}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {6.6}Doble buffer de audio}{\reset@font\mtcSfont 117}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {6.7}Proceso RTP/RTP}{\reset@font\mtcSfont 120}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {6.8}Tratamiento de XML}{\reset@font\mtcSfont 125}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {6.9}Proxy SSIP}{\reset@font\mtcSfont 127}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {6.10}Otras consideraciones}{\reset@font\mtcSfont 133}}

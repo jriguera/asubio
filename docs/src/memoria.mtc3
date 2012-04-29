@@ -1,0 +1,36 @@
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3.1}Tratamiento del sonido}{\reset@font\mtcSfont 18}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.1.1}Ac\'ustica}{\reset@font\mtcSSfont 18}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Sonido}{\reset@font\mtcSSSfont 18}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Amplitud}{\reset@font\mtcSSSfont 20}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Rango din\'amico}{\reset@font\mtcSSSfont 22}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Ancho de banda}{\reset@font\mtcSSSfont 23}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.1.2}Psicoac\'ustica}{\reset@font\mtcSSfont 24}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.1.3}Modulaci\'on de audio}{\reset@font\mtcSSfont 25}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.1.4}Compresi\'on de audio}{\reset@font\mtcSSfont 27}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.1.5}Otras consideraciones}{\reset@font\mtcSSfont 28}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Detecci\'on de voz. VAD}{\reset@font\mtcSSSfont 28}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Modificaci\'on del volumen en el audio digital}{\reset@font\mtcSSSfont 29}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Mezcla de sonidos digitales}{\reset@font\mtcSSSfont 29}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3.2}Protocolo de Internet. IP}{\reset@font\mtcSfont 29}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.2.1}Introducci\'on}{\reset@font\mtcSSfont 30}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.2.2}Rendimiento de \emph {IP}}{\reset@font\mtcSSfont 32}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.2.3}Protocolo de Control de Transferencia. TCP}{\reset@font\mtcSSfont 32}}
+{\reset@font\mtcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode Fiabilidad en la transferencia de TCP.}{\reset@font\mtcPfont 33}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.2.4}Protocolo de Datagramas de Usuario. UDP}{\reset@font\mtcSSfont 34}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.2.5}Unicast {\it versus} Multicast}{\reset@font\mtcSSfont 34}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.2.6}IPv6, la pr\'oxima generaci\'on IP}{\reset@font\mtcSSfont 35}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Direcciones IPv6}{\reset@font\mtcSSSfont 36}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Conversi\'on formato IPv4 $\leftrightarrows $ IPv6}{\reset@font\mtcSSSfont 37}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.2.7}RFC's de IP}{\reset@font\mtcSSfont 37}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3.3}RTP/RTCP}{\reset@font\mtcSfont 37}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.3.1}Introducci\'on}{\reset@font\mtcSSfont 37}}
+{\reset@font\mtcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode RTCP}{\reset@font\mtcPfont 39}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3.4}Negociaci\'on de la sesi\'on}{\reset@font\mtcSfont 40}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.4.1}SIP {\it versus} H.323}{\reset@font\mtcSSfont 40}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.4.2}SDP}{\reset@font\mtcSSfont 42}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3.5}XML}{\reset@font\mtcSfont 42}}
+{\reset@font\mtcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode XML tiene como objetivos:}{\reset@font\mtcPfont 43}}
+{\reset@font\mtcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode Principales caracter\IeC {\'\i }sticas}{\reset@font\mtcPfont 44}}
+{\reset@font\mtcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode Estructura de XML}{\reset@font\mtcPfont 44}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {3.5.1}Est\'andares XML}{\reset@font\mtcSSfont 44}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {3.6}Data Encryption Standard. DES}{\reset@font\mtcSfont 45}}

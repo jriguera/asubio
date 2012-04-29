@@ -1,0 +1,161 @@
+\select@language {spanish}
+\chapterbegin 
+\contentsline {chapter}{\numberline {1}Introducci\'on}{1}
+\contentsline {section}{\numberline {1.1}Pr\'ologo}{2}
+\contentsline {section}{\numberline {1.2}Organizaci\'on y contenido de esta memoria}{3}
+\contentsline {chapter}{\numberline {2}Plan de proyecto}{5}
+\contentsline {section}{\numberline {2.1}An\'alisis de viabilidad}{6}
+\contentsline {subsection}{\numberline {2.1.1}Descripci\'on}{6}
+\contentsline {subsection}{\numberline {2.1.2}Objeto}{7}
+\contentsline {paragraph}{Ventajas:}{7}
+\contentsline {paragraph}{Inconvenientes,}{8}
+\contentsline {subsection}{\numberline {2.1.3}Objetivos}{8}
+\contentsline {subsection}{\numberline {2.1.4}Requerimientos y recursos}{8}
+\contentsline {paragraph}{Requerimientos,}{8}
+\contentsline {paragraph}{Recursos:}{9}
+\contentsline {subsection}{\numberline {2.1.5}Sistema de Control}{10}
+\contentsline {subsection}{\numberline {2.1.6}Elementos de riesgo}{11}
+\contentsline {subsection}{\numberline {2.1.7}Beneficios}{11}
+\contentsline {subsection}{\numberline {2.1.8}Conclusiones}{11}
+\contentsline {section}{\numberline {2.2}Antecedentes}{12}
+\contentsline {subsection}{\numberline {2.2.1}Estado del arte}{13}
+\contentsline {subsection}{\numberline {2.2.2}Proyectos similares}{13}
+\contentsline {paragraph}{Linphone,}{14}
+\contentsline {paragraph}{Speak Freely.}{14}
+\contentsline {paragraph}{RAT - Robust Audio Tool.}{15}
+\contentsline {chapter}{\numberline {3}An\'alisis tecnol\'ogico}{17}
+\contentsline {section}{\numberline {3.1}Tratamiento del sonido}{18}
+\contentsline {subsection}{\numberline {3.1.1}Ac\'ustica}{18}
+\contentsline {subsubsection}{Sonido}{18}
+\contentsline {subsubsection}{Amplitud}{20}
+\contentsline {subsubsection}{Rango din\'amico}{22}
+\contentsline {subsubsection}{Ancho de banda}{23}
+\contentsline {subsection}{\numberline {3.1.2}Psicoac\'ustica}{24}
+\contentsline {subsection}{\numberline {3.1.3}Modulaci\'on de audio}{25}
+\contentsline {subsection}{\numberline {3.1.4}Compresi\'on de audio}{27}
+\contentsline {subsection}{\numberline {3.1.5}Otras consideraciones}{28}
+\contentsline {subsubsection}{Detecci\'on de voz. VAD}{28}
+\contentsline {subsubsection}{Modificaci\'on del volumen en el audio digital}{29}
+\contentsline {subsubsection}{Mezcla de sonidos digitales}{29}
+\contentsline {section}{\numberline {3.2}Protocolo de Internet. IP}{29}
+\contentsline {subsection}{\numberline {3.2.1}Introducci\'on}{30}
+\contentsline {subsection}{\numberline {3.2.2}Rendimiento de \emph {IP}}{32}
+\contentsline {subsection}{\numberline {3.2.3}Protocolo de Control de Transferencia. TCP}{32}
+\contentsline {paragraph}{Fiabilidad en la transferencia de TCP.}{33}
+\contentsline {subsection}{\numberline {3.2.4}Protocolo de Datagramas de Usuario. UDP}{34}
+\contentsline {subsection}{\numberline {3.2.5}Unicast {\it versus} Multicast}{34}
+\contentsline {subsection}{\numberline {3.2.6}IPv6, la pr\'oxima generaci\'on IP}{35}
+\contentsline {subsubsection}{Direcciones IPv6}{36}
+\contentsline {subsubsection}{Conversi\'on formato IPv4 $\leftrightarrows $ IPv6}{37}
+\contentsline {subsection}{\numberline {3.2.7}RFC's de IP}{37}
+\contentsline {section}{\numberline {3.3}RTP/RTCP}{37}
+\contentsline {subsection}{\numberline {3.3.1}Introducci\'on}{37}
+\contentsline {paragraph}{RTCP}{39}
+\contentsline {section}{\numberline {3.4}Negociaci\'on de la sesi\'on}{40}
+\contentsline {subsection}{\numberline {3.4.1}SIP {\it versus} H.323}{40}
+\contentsline {subsection}{\numberline {3.4.2}SDP}{42}
+\contentsline {section}{\numberline {3.5}XML}{42}
+\contentsline {paragraph}{XML tiene como objetivos:}{43}
+\contentsline {paragraph}{Principales caracter\IeC {\'\i }sticas}{44}
+\contentsline {paragraph}{Estructura de XML}{44}
+\contentsline {subsection}{\numberline {3.5.1}Est\'andares XML}{44}
+\contentsline {section}{\numberline {3.6}Data Encryption Standard. DES}{45}
+\contentsline {chapter}{\numberline {4}An\'alisis de requisitos}{47}
+\contentsline {section}{\numberline {4.1}Consideraciones previas}{49}
+\contentsline {section}{\numberline {4.2}Visi\'on general}{50}
+\contentsline {subsection}{\numberline {4.2.1}Entorno de desarrollo}{50}
+\contentsline {paragraph}{Hardware:}{50}
+\contentsline {paragraph}{Software:}{51}
+\contentsline {paragraph}{Documentaci\'on:}{51}
+\contentsline {subsection}{\numberline {4.2.2}Entorno de operaci\'on}{51}
+\contentsline {section}{\numberline {4.3}\textbf {Asub\IeC {\'\i }o}}{52}
+\contentsline {subsection}{\numberline {4.3.1}Arquitectura funcional}{52}
+\contentsline {subsubsection}{Interfaz Gr\'afica Usuario. GUI}{52}
+\contentsline {subsubsection}{Acceso, tratamiento y transmisi\'on de audio}{52}
+\contentsline {subsubsection}{Gesti\'on de la Agenda de contactos}{53}
+\contentsline {subsection}{\numberline {4.3.2}Requerimientos funcionales}{55}
+\contentsline {subsubsection}{Configuraci\'on}{55}
+\contentsline {subsubsection}{Operaciones}{55}
+\contentsline {subsubsection}{Interfaz Gr\'afica Usuario. GUI}{57}
+\contentsline {section}{\numberline {4.4}\textbf {Proxy SSIP}}{58}
+\contentsline {subsection}{\numberline {4.4.1}Objeto}{58}
+\contentsline {subsection}{\numberline {4.4.2}Alternativas}{58}
+\contentsline {subsection}{\numberline {4.4.3}Objetivos}{59}
+\contentsline {subsection}{\numberline {4.4.4}Requerimientos}{59}
+\contentsline {subsubsection}{Seguridad}{60}
+\contentsline {subsubsection}{Gesti\'on de usuarios}{60}
+\contentsline {subsubsection}{Gesti\'on de negociaci\'on de inicio de sesi\'on}{60}
+\contentsline {subsubsection}{Configuraci\'on}{60}
+\contentsline {section}{\numberline {4.5}M\'etodo y tecnolog\IeC {\'\i }as de trabajo}{61}
+\contentsline {subsection}{\numberline {4.5.1}Glib, Gtk+ y libxml2}{62}
+\contentsline {subsubsection}{Introducci\'on a Glib y Gtk+}{62}
+\contentsline {subsubsection}{Caracter\IeC {\'\i }sticas}{62}
+\contentsline {paragraph}{Glib}{63}
+\contentsline {paragraph}{GTK+}{63}
+\contentsline {paragraph}{Libxml2}{64}
+\contentsline {subsection}{\numberline {4.5.2}Acesso a red}{64}
+\contentsline {subsection}{\numberline {4.5.3}Librer\IeC {\'\i }a RTP/RTCP}{64}
+\contentsline {subsection}{\numberline {4.5.4}Sonido}{65}
+\contentsline {subsubsection}{Open Sound System. OSS}{66}
+\contentsline {subsubsection}{Advanced Linux Sound Architecture. ALSA}{66}
+\contentsline {subsection}{\numberline {4.5.5}Cifrado con DES}{67}
+\contentsline {section}{\numberline {4.6}Proceso de negociaci\'on de inicio de sesi\'on}{68}
+\contentsline {section}{\numberline {4.7}Otras consideraciones}{68}
+\contentsline {subsection}{\numberline {4.7.1}Licencia de distribuci\'on del c\'odigo}{68}
+\contentsline {subsection}{\numberline {4.7.2}Distribuci\'on del proyecto}{69}
+\contentsline {chapter}{\numberline {5}Diseno}{71}
+\contentsline {section}{\numberline {5.1}Software \textbf {Asub\IeC {\'\i }o}}{72}
+\contentsline {subsection}{\numberline {5.1.1}Interfaz Gr\'afica de Usuario. GUI}{73}
+\contentsline {subsection}{\numberline {5.1.2}Acceso a red}{75}
+\contentsline {subsection}{\numberline {5.1.3}Acceso al fichero de configuraci\'on}{75}
+\contentsline {subsection}{\numberline {5.1.4}Procesador de audio}{76}
+\contentsline {subsection}{\numberline {5.1.5}Doble buffer de audio}{78}
+\contentsline {subsection}{\numberline {5.1.6}Plugins}{79}
+\contentsline {subsubsection}{\textbf {{\it InOut}} Plugins}{80}
+\contentsline {subsubsection}{\textbf {{\it Effect}} Plugins}{80}
+\contentsline {subsubsection}{\textbf {{\it Codec}} Plugins}{80}
+\contentsline {section}{\numberline {5.2}Concepto de sesi\'on}{80}
+\contentsline {subsection}{\numberline {5.2.1}Subsistema RTP/RTCP}{81}
+\contentsline {section}{\numberline {5.3}Simple Session Initiation Protocol. SSIP}{81}
+\contentsline {section}{\numberline {5.4}Proxy SSIP}{84}
+\contentsline {subsection}{\numberline {5.4.1}Configuraci\'on}{85}
+\contentsline {subsection}{\numberline {5.4.2}Subsistema de control de usuarios}{86}
+\contentsline {subsubsection}{Protocolo NOTIFY}{87}
+\contentsline {subsubsection}{Funcionamiento}{89}
+\contentsline {subsection}{\numberline {5.4.3}Subsistema de negociaci\'on}{89}
+\contentsline {subsection}{\numberline {5.4.4}Control de concurrencia}{91}
+\contentsline {subsection}{\numberline {5.4.5}Seguridad}{91}
+\contentsline {chapter}{\numberline {6}Implementaci\'on}{93}
+\contentsline {section}{\numberline {6.1}Organizaci\'on en directorios}{94}
+\contentsline {section}{\numberline {6.2}Algoritmos y arquitectura}{95}
+\contentsline {section}{\numberline {6.3}C\'odigo compartido}{96}
+\contentsline {subsection}{\numberline {6.3.1}Fichero de configuraci\'on}{96}
+\contentsline {subsection}{\numberline {6.3.2}TDA's de acceso a red}{97}
+\contentsline {subsection}{\numberline {6.3.3}Negociaci\'on \emph {SSIP} y \emph {NOTIFY}}{100}
+\contentsline {section}{\numberline {6.4}Plugins}{103}
+\contentsline {subsection}{\numberline {6.4.1}\emph {InOut} Plugin}{103}
+\contentsline {subsection}{\numberline {6.4.2}\emph {Effect} Plugin}{105}
+\contentsline {subsection}{\numberline {6.4.3}\emph {Codec} Plugin e implementaci\'on OO de herencia}{107}
+\contentsline {section}{\numberline {6.5}Procesador de Audio}{112}
+\contentsline {section}{\numberline {6.6}Doble buffer de audio}{117}
+\contentsline {section}{\numberline {6.7}Proceso RTP/RTP}{120}
+\contentsline {section}{\numberline {6.8}Tratamiento de XML}{125}
+\contentsline {section}{\numberline {6.9}Proxy SSIP}{127}
+\contentsline {section}{\numberline {6.10}Otras consideraciones}{133}
+\contentsline {chapter}{\numberline {7}Pruebas, resultados y rendimiento}{135}
+\contentsline {section}{\numberline {7.1}Pruebas y resultados del software}{136}
+\contentsline {paragraph}{Pruebas de configuraci\'on y arranque del sistema}{137}
+\contentsline {paragraph}{Comprobaci\'on del subsistema RTP/RTCP}{137}
+\contentsline {paragraph}{Comprobaci\'on del subsistema SSIP/NOTIFY}{137}
+\contentsline {paragraph}{Pruebas de estr\'es}{137}
+\contentsline {paragraph}{Pruebas al \textbf {Proxy SSIP}}{138}
+\contentsline {section}{\numberline {7.2}Rendimiento}{138}
+\contentsline {chapter}{\numberline {8}Conclusiones}{141}
+\contentsline {section}{\numberline {8.1}Concordancia entre resultados y objetivos}{142}
+\contentsline {section}{\numberline {8.2}Comparativa con otros programas}{143}
+\contentsline {paragraph}{Linphone.}{143}
+\contentsline {paragraph}{Speak Freely.}{144}
+\contentsline {paragraph}{RAT - Robust Audio Tool.}{145}
+\contentsline {section}{\numberline {8.3}Mejoras y ampliaciones}{146}
+\contentsline {section}{\numberline {8.4}Conclusiones del proyecto}{147}
+\chapterbegin 

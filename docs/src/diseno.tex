@@ -1,0 +1,396 @@
+\capitulo{Diseno}
+\label{chp:diseno}
+\minitoc
+\newpage
+
+Fundamentalmente el diseño se ha basado en la medodología tradicional. Sin embargo, hay determinadas partes  en las que se ha usado técnicas de \emph{POO}, desarrollando clases de objetos e incluso herencia. A pesar de que el lenguaje de programación C no es un lenguaje diseñado para simplificar la Orientación a Objetos, es perfectamente posible seguir el paradigma de la \emph{OO} siguiendo un conjunto de reglas de diseño. Los motivos del uso de este tipo de metodología se explicarán concisamente más adelante, pero en la mayoría de los casos ha sido para facilitar el desarrollo. \\
+
+Como este proyecto consta de dos programas, diferenciados e independientes, se va a analizar su diseño por separado. En primer lugar se analiza diseño del software \software \  y luego se analiza el diseño del \textbf{Proxy SSIP}. Los detalles del modo de implementar subsistemas y algoritmos se detallan en el capítulo siguiente.
+
+\section{Software \software}
+
+Este programa es la parte fundamental del proyecto, es el que debe cumplir la propuesta original. Para cumplir los requisitos definidos en el capítulo anterior, se sigue un diseño con las siguientes características generales:
+
+\begin{description}
+	\item [Sistema modular.] Se puede definir \emph{sistema software modular} como aquel que ayuda a los diseñadores a construir sistemas formados por elementos autónomos y organizadas en arquitecturas sencillas. 
+	\item [Principio de ocultación de información.] Los módulos de un sistema deben diseñarse de modo que la información contenida en ellos sea inaccesible a todos aquellos módulos que no necesiten tal información.
+	\item [Abstracción de datos.] Una abstracción de datos está formada por un conjunto de objetos y un conjunto de operaciones (abstracciones funcionales que manipulan estos objetos). 
+	\item [API explícita.] Se puede decir que una \emph{API} es explícita si el nombre identificador de las funciones que forman parte de la \emph{API} da al desarrollador una idea intuitiva de la función que desempeña. 
+	\item [GUI intuitiva.] Una interfaz intuitiva es aquella que logra máxima funcionalidad con mínimas funciones de manipulación. 
+	\item [Sistema escalable.] Se dice que un sistema es escalable si su arquitectura permite de forma sencilla ampliar prestaciones, evitando modificaciones de la base estructural. 
+\end{description}
+
+\software \  se descompone en los siguientes subsistemas:
+
+\begin{description}
+	\item [GUI, Interfaz Gráfica]: es el subsistema que emplea el usuario para interactuar con las funcionalidades del proyecto, permite al usuario de configurar el programa y ejecutar diversas opciones.
+	\item [Procesador de Audio]: este subsistema se encarga de gestionar el acceso a los dispositivos de audio, tanto para escritura como lectura, junto con otras operaciones.
+	\item [Buffer de Audio]: subsistema que controla los ``plugins'' de efectos de sonido \emph{Effect Plugin} junto con los flujos de audio.
+	\item [Acceso a Red]: engloba todo lo referente al protocolo \emph{IP} y superiores (TCP, UDP).
+	\item [IO]: subsistema que controla todo lo referente a las sesiones \emph{RTP/RTCP}. Es un sistema complejo que se descompondrá en otros subsistemas.
+	\item [Agenda XML]: es el encargado de guardar y obtener la información de la agenda de contactos en XML.
+	\item [Gestión \emph{SSIP/NOTIFY}]: es el subsistema que se encarga de gestionar toda la negociación  \emph{SSIP} y notificación con el \emph{Proxy SSIP}.
+\end{description}
+
+También hay que tener en cuenta, que este sistema es altamente modular, por lo que habrá que definir el funcionamiento de todos los tipos de plugins. \\
+
+El diagrama \ref{fig:asubio} muestra como interactúan todos los subsistemas en el programa.
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth, height=9cm] {asubio.eps}
+\caption{Subsistemas de \software}
+\label{fig:asubio}
+\end{figure}
+
+A continuación se analiza el diseño de cada subsistema por separado, para abordar al final la integración entre todos ellos.
+
+\subsection{Interfaz Gráfica de Usuario. GUI}
+
+La GUI está desarrollada íntegramente en GTK+. Contiene servicios de valor añadido, como por ejemplo la posibilidad de usar una libreta de direcciones para almacenar las direcciones de contactos. Todas las incidencias (errores, informaciones, advertencias, etc ...) son cuadros de diálogo no bloqueantes, y permiten seguir usando el resto de la aplicación, excepto estas tres ventanas:
+
+\begin{enumerate}
+	\item La agenda de contactos.
+	\item Diálogo de conexión o de llamada entrante.
+	\item Ventana de configuración, permite configurar los parámetros que afectan al rendimiento de la aplicación, así como la configuración de los distintos plugins. Su diseño está basado en pestañas, de esa forma se permite añadir nuevas características fácilmente y de manera modular.
+\end{enumerate}
+
+Otra ventana muy importante es, la ventana de aceptación de llamada entrante. El usuario puede elegir si aceptar o no la llamada. Esta ventana se muestra en primer plano y en el escritorio activo en donde se encuentre trabajando el usuario. No bloquea el resto de la interfaz gráfica, pero, sólo existe una ventana de este tipo, esto significa que, mientras que el usuario no acepta o rechaza la llamanda no podrán aparecer otras llamadas. En \emph{OO} esto se conoce como patrón \emph{Singlenton}. \\
+
+Otro aspecto importante es el desarrollo de la interfaz principal de control de sesiones, también se basa en un sistema de pestañas, donde una pestaña representa una sesión \emph{RTP}. Cada pestaña permite mostrar y modificar los parámetros de la sesión a la que representa. Parámetros como: control de ganancia, mute del micrófono, mostrar información de la sesión y los plugins y enmudecer al usuario. \\
+
+Todo el diseño de la \emph{GUI} es totalmente independiente de la lógica de la aplicación, siguiendo el patrón \emph{MVC}. De esta forma será muy fácil modificar o desarrollar en el futuro la GUI u otras GUI's con \emph{QT}, con \emph{NCurses} para consola (sin GUI), etc. Como este diseño tiene un alto grado de paralelismo, todas las ventanas son creadas desde el bucle principal de GTK, para ello se ha implementado un complejo sistema de semáforos que controlan los mecanismos de transferencia de datos entre varios hilos de ejecución. 
+
+\subsection{Acceso a red}
+
+Como el sistema debe funcionar tanto en redes IPv4 como IPv6, se desarrolló un sitema que permite abstraer completamente las funciones del API de sockets. Aunque esta parte no se desarrolló usando OO, el siguiente diagrama (\ref{fig:api_red} UML permite representar fácilmente su estructura. Además, este subsistema, debe proveer funciones para acceder a redes \emph{multicast}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth, height=7cm] {uml_red.eps}
+\caption{Relaciones lógicas existentes en el acceso a red}
+\label{fig:api_red}
+\end{figure}
+
+\subsection{Acceso al fichero de configuración}
+
+Hay un TDA que se encarga del acceso a toda la configuración, carga todos los pares {\it clave}={\it valor} que se encuentran en una sección {\it [GLOBAL]} por ejemplo. El fichero de configuración presenta el siguiente formato:
+
+\begin{center}
+\begin{boxit}
+\begin{verbatim}
+[GLOBAL]
+rtp_base_port=10000
+plugins_inout_dir=/home/riguera/.asubio/plugins/inout/
+plugins_codecs_dir=/home/riguera/.asubio/plugins/codec/
+plugins_effect_dir=/home/riguera/.asubio/plugins/effect/
+contact_db=/home/riguera/.asubio/agenda.ml
+program_hostname=192.168.1.2
+audio_mic_vol=58
+audio_spk_vol=65
+
+[OSS]
+audio_device_in=/dev/dsp
+mixer_device_in=/dev/mixer
+audio_source=0
+audio_device_out=/dev/dsp
+mixer_device_out=/dev/mixer
+volume_control=0
+\end{verbatim}
+\end{boxit}
+\end{center}
+
+El TDA lee el fichero en memoria y por medio de listas enlazadas que contienen los pares clave-valor de una sección, se puede mantener en memoria toda la estructura. Además esa estructura incorpora semáforos binarios que impiden que dos \emph{threads} o hilos, accedan y modifiquen una sección al mismo tiempo. De esta forma el TDA se puede usar con hilos concurrentes.
+
+\subsection{Procesador de audio}
+
+Es uno de los subsistemas más crítitos del programa, sus dos tareas principales son repartir el audio de entrada (generalmente del micrófono) y mezclar el audio de salida (hacia los auriculares o altavoces). Es un sistema autónomo, es decir, actúa concurrentemente junto con otros subsistemas y es capaz de realizar las siguientes funciones:
+
+\begin{itemize}
+	\item Repartir el audio a todas las sesiones u otros subsistemas que lo soliciten.
+	\item Mezclar el audio de distintas fuentes, generalmente sesiones RTP.
+	\item Controlar el tiempo de escritura y lectura de bloques de audio. Si se escribe o lee demasiado pronto o demasiado tarde en un dispositivo de audio, se producen {\it buffer overrun} y cortes de audio. Los  {\it buffer overrun} provocan cortes en el audio y una pérdida de rendimiento global del programa. El {\it Procesador de Audio}, es capaz de controlar el tiempo de forma muy precisa para evitar que se produzcan estas situaciones.
+\end{itemize}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth, height=9cm] {audio_processor.eps}
+\caption{Funcionamiento lógico del Procesador de Audio}
+\label{fig:audio_processor}
+\end{figure}
+
+Todo el audio que se maneja en el programa es tratado por este subsistema. Dicho es un \emph{TDA}, aunque en un contexto de patrones se asemajaría a un \emph{Singlenton}, es decir, no pueden existir dos {\it Procesadores de Audio} en el programa. \\
+
+El audio que despacha o recibe este subsistema, llega a través de un canal asíncrono -ya que él se encarga de gestionar el tiempo-. Ese canal tiene propiedades de cola, por lo que si una fuente envía de repente muchos bloques de audio, los bloques de audio sobrantes, serán encolados para su tratamiento posterior, es decir, actúa como un colchón frente a estas variaciones en la red. Por supuesto, dispone de un sistema de sincronización para controlar la longitud de esas colas de audio. Los canales de audio tienen también propiedades bloqueantes, es decir, si no hay bloques para leer en un canal, esa llamada quedará bloqueada hasta que lleguen datos. \\
+
+Este subsistema está relacionado estrechamente con el \emph{InOut Plugin}, ya que usa su api, en concreto sus funciones de E/S de audio para interactuar con el dispositivo. Sin embargo no tiene capacidades de inicializar el plugin, es decir, el plugin {\it InOut} ya está inicializado cuando se ejecuta el {\it Procesador de Audio}. \\
+
+El audio que trata este subsistema se procesa en formato 16 bits, \emph{LITTLE ENDIAN}, mono, muestreado a 8000Hz. Si el sistema en que se ejecuta es \emph{BIG ENDIAN} se deberá recompilar, con compilación condicional, para tratar correctamente el audio.
+
+\subsection{Doble buffer de audio}
+
+Este subsistema también es muy importante, cada cola de audio que se solicita al \emph{Procesador de Audio} termina en un buffer de audio. Se puede apreciar en la figura siguiente (\ref{fig:audio_buffer}):
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=9cm, height=7cm] {buffer_audio.eps}
+\caption{Funcionamiento del doble buffer de audio}
+\label{fig:audio_buffer}
+\end{figure}
+
+La existencia de estos buffers de audio constituye otra parte fundamental de la arquitectura de audio. Se podría diseñar perfectamente un sistema de audio carente de dichos búfferes, consiguiendo una calidad en el sonido no necesariamente mala. Pero, gracias a los bufferes de audio, se consigue una indepencia lógica y física del \emph{Procesador de Audio} con el subsistema RTP/RTCP, ya que están implementados por hilos diferentes que no tendrán ninguna relación en común. Se iniciarán y pararán por separado, y ninguno de los dos (en realidad son tres) tendrá constancia de la presencia del otro. Las ventajas de esta arquitectura son evidentemente, que los problemas en un hilo no afectan al otro, y que al no estar relacionados no se crearán conflictos entre ambos. El uso de hilos o procesos ligeros junto con los buffers de audio, aporta estas ventajas:
+
+\begin{description}
+	\item [Acople de velocidades:] el acople de velocidades entre la lectura/escritura del audio desde el \emph{Procesador de Audio} y la emisión/recepción de paquetes RTP desde la red. En un diseño basado en un sólo hilo que realiza secuencialmente una lista de tareas, el tema del acople de las velocidades puede llegar a suponer grandes dolores de cabeza por dos circunstancias: por una parte, el dispositivo de audio necesita que se le suministre las muestras de audio en una cantidad relativamente abundante (para bloquear lo menos posible el dispositivo y permitir una reproducción sin cortes. Es muchísimo mejor realizar pocos accesos y manejar más datos, que muchos pequeños accesos para pequeñas cosas) y de forma constante. Por otra parte, la red es aleatoria y no fiable, ya que son comunes los momentos de silencio en los que no llegará ningún dato para, a continuación, llegar todos de golpe.
+	\item [Mejora en las posibilidades de acceso:] en un sistema de sonido compuesto por un único hilo que acceda al \emph{Procesador de Audio}, codificando/decodificando y accediendo a la red de forma cíclica y secuencial, el usuario y por ende, el sistema de audio, nunca tendrá acceso de ninguna manera a las muestras de sonido. Usando un buffer intermedio se pueden implementar ciertos sistemas, como se mostrará más adelante, para permitir por ejemplo, una lectura no destructiva del buffer. 
+	\item [Mayor facilidad para realizar mejoras:] al dividir el problema y acordar una interfaz común (el acceso a los búfferes) es sencillo eliminar una parte y sustituirla por otra. Se puede cambiar el protocolo de transporte de los flujos (RTP) por otro, si así se estimara oportuno en cierto momento, sin tener que alterar una sola línea de las funciones que proporcionan el acceso a los recursos de audio de la máquina.
+	\item [Tamaños de bloque de audio distintos] el uso de los buffers permite que se puedan leer tamaños de bloque distintos del \emph{Procesador de Audio} de los que emplean los codecs de audio.
+\end{description}	
+
+\subsection{Plugins}
+
+La adición de funciones en tiempo de ejecución elimina la necesidad de modificar el código base. La incorporación de los plugins permite mediante un sistema abierto crear componentes reusables del que pueden ser beneficiarias varias aplicaciones a la vez. Además, los plugins, al ser independientes del programa, permiten incorporar una serie de tecnologías propietarias o patentadas que de otra forma sería imposible. \\
+
+La carga de plugins es totalmente independiente del sistema sobre el que se ejecute el programa. Glib tiene funciones que permiten abstraer completamente la creación y el uso de plugins en el software. Todos los tipos de plugins deben tener en común una única función, la que exporte una estructura al programa principal que permita acceder luego a las funciones y símbolos del plugin. De ese modo se evitan que las funciones desperdigadas.
+
+\subsubsection{\textbf{{\it InOut}} Plugins}
+
+Su función principal es capturar y escribir el audio en el dispositivo de sonido del PC, es decir, tal como su nombre indica, es el encargado de la entrada-salida de audio en el sistema local. La interfaz de este plugin debe aportar funciones de lectura y escritura de audio, en un dispositivo de audio. Se debe tener en cuenta que el acceso a las funciones de lectura y escritura de audio puede ser full-duplex.
+
+\subsubsection{\textbf{{\it Effect}} Plugins}
+
+Tienen como función expandir el funcionamiento del programa. Estos plugins pueden modificar los flujos de audio de entrada y salida para poder añadir funcionalidades como. 
+
+\subsubsection{\textbf{{\it Codec}} Plugins}
+
+Son la clave de funcionamiento del programa, su funcion es aportar una método de compresión de audio. Estos se implementaron de forma diferente a los anteriores, en este caso existe un objeto llamado {\it codec} del que heredan todos estos plugins. La razones por la que se implementaron de esta forma son:
+
+\begin{itemize}
+	\item Facilidad de programación, una vez ``instanciado'' el objeto, basta con llamarlo para los frames de audio de un flujo.
+	\item Al emplear la herencia, siempre se usa la misma función, es independiente del nombre del plugin, de su estado, etc.
+	\item Futuras ampliaciones del proyecto, como por ejemplo la posibilidad de recomprimir audio para asuntos de recuperación o retransmisión.
+\end{itemize}
+
+El siguiente diagrama UML modeliza la clase {\it Codec} (figura \ref{fig:vocodec}):
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=10cm, height=6cm] {codec.eps}
+\caption{Diagrama de la clase Codec}
+\label{fig:vocodec}
+\end{figure}
+
+\section{Concepto de sesión}
+
+Una sesión es simplemente el estado de una comunicación RTP. Para que el programa sea multisesión, aparte de lo ya explicado del subsistema de audio, del GUI, etc. necesita guardar el estado de todas sus sesiones activas. Se implementó, con ayuda de los TDA de Glib, un sistema de lista enlazada que contiene todo lo referente a cada sesión. Cada vez que se crea o destruye una sesión, se añade o borra un estado a la lista. Para obtener cualquier información de una sesión, basta con buscar esa sesión en la lista y obtener los datos de los campos significativos. \\
+
+Cuando se crea una sesión nueva, lo primero que se hace es comprobar si está lanzado el {\it Procesador de Audio}, o dicho de otro modo, comprobar si existen otras sesiones activas. Si no se está ejecutado el {\it Procesador de Audio}, se lanza. Si no funciona o está ocupado el dispositivo de E/S de audio, -\emph{InOut Plugin}-, se muestra el mesaje de error al usuario. Después se solicita una cola asíncrona para lectura y otra para escritura del audio al {\it Procesador de Audio}, se aguarda la concesión y se continúa con la creación del proceso RTP/RTCP. Una vez finalizado todo el proceso lógico correctamente, se crean todos los ``widgets'' en la GUI. Finalmente se añade la refencia a esa sessión a la lista de sesiones activas.
+
+\subsection{Subsistema RTP/RTCP}
+
+Como se puede apreciar en la figura \ref{fig:io}, este subsitema comprende tres hilos de ejecución. El uno se encarga de recibir los datos de la red, otro de enviarlos y un tercero se encarga de controlar a ambos y de controlar la sesión RTCP. Esta forma de distribución de los hilos permite aprovechar al máximo el tiempo de CPU concedido. Además, este diseño, favorece el cumplimiento del estándar RTP/RTCP, ya que, de esta forma el hilo RTCP se puede dedicar a controlar los timeouts de los usuarios.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth, height=9cm] {io.eps}
+\caption{Funcionamiento del subsistema IO}
+\label{fig:io}
+\end{figure}
+
+Hay que tener en cuenta que estos tres hilos acceden concurrentemente a la librería de RTP/RTCP, por lo que hay que controlar esta situación con semáforos.
+
+\section{Simple Session Initiation Protocol. SSIP}
+
+Es el protocolo encargado de la negociación de inicio de sesión. El propósito es disponer de un protocolo que controle el inicio de sesión entre dos usuarios. El funcionamiento es de esta forma:
+\begin{enumerate}
+	\item El usuario espera las llamadas en un puerto.
+	\item Cuando recibe una llamada comprueba que es para él, en caso contrario se descarta.
+	\item Si el usuario que llama está ignorado en la agenda de contactos, se rechaza la llamada
+	\item El usuario debe aceptar o rechazar la llamada, si la rechaza, finaliza la comunicación.
+	\item Una vez que se ha aceptado la llamada se negocian los codec que el usuario, que ha iniciado la llamada, ha elegido, si ambos usuarios no tienen codecs coincidentes, finaliza la comunicación.
+	\item Tras la negociación de los codecs, se procede a la negociación de los puertos de transmisión y recepción RTP.
+	\item Finalización de la negociación con éxito.
+\end{enumerate}
+
+El diagrama \ref{fig:ssip} ilustra esta negociación:
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=8cm, height=10cm] {SSIP.eps}
+\caption{Negociación SSIP}
+\label{fig:ssip}
+\end{figure}
+
+A continuación se va a detallar todos los tipos de paquetes de SSIP:
+\begin{description}
+	\item [\emph{CONNECT\_HELO}:] es el primer paquete que se envia para iniciar la negociación. Contiene información del usuario del que procede y al que va enviado. Soporta el envio de un mensaje de texto de no más de 256 caracteres.
+	\item [\emph{CONNECT\_VALIDUSER}:] Indica que el usuario existe y ha aceptado la llamada. Si se recibe en este punto un \emph{CONNECT\_BYE} puede significar que el usuario no acepte la llamada o no exista en esa {\it maquina:puerto}
+	\item [\emph{CONNECT\_CODECTX}:] Información de los codes de cada usuario, ordenados por orden de prioridad, se prueba sucesivamente con los codecs elegidos, hasta que se encuentre un codec que tienen ambos. cuando el segundo cliente encuentra una coincidencia, envía otro paquete \emph{CONNECT\_CODECTX} de vuelta sólo con la información de ese codec.
+	\item [\emph{CONNECT\_RTP}:] Intercambio de información para los parámetros de la sesión RTP (puertos de TX y RX, etc). El segundo cliente debe responder con otro paquete de ese tipo.
+	\item [\emph{CONNECT\_BYE}:] Finalización correcta de la negociación
+\end{description}
+
+Este protocolo presenta unas particularidades:
+\begin{itemize}
+	\item Como se puede observar, cuando una máquina envía un paquete de tipo \emph{CONNECT\_BYE} la otra siempre debe responder, a modo de ping.
+	\item La comunicación puede ser interrumpida en cualquier momento con el envío por cualquiera de las dos partes de un paquete \emph{CONNECT\_ERROR}. Este paquete tiene en le campo DATA, una descripción en formato texto del error ocurrido.
+\end{itemize}
+
+Los detalles de los campos y de la cabecera de este protocolo se muestran en el capítulo de {\it Implementación}.
+
+\section{Proxy SSIP}
+
+Este proceso es el encargado de gestionar el inicio y negociación de sesión para un conjunto de usuarios, es decir, aquellos que usen el proxy. Este sistema consta de dos subsistemas: el subsitema de negociación de inicio de sesión y el subsistema de control de usuarios. Ambos subsistemas están totalmente diferenciados, por lo que son totalmente independientes, excepto en la parte de gestión de usuarios, a la que ambos deben acceder para poder realizar su función. La figura  \ref{fig:proxy} muestra gráficamente lo comentado. 
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=10cm, height=6cm] {proxy.eps}
+\caption{Funcionamiento global del proxy}
+\label{fig:proxy}
+\end{figure}
+
+La gestión de los usuarios activos se realiza almacenando sus datos en una base de datos. Como ambos subsistemas son independientes, se optó por un diseño concurrente con dos procesos, con un método de control de concurrencia, de otro modo puede ocurrir que, cuando un subsistema acceda al fichero para actualizar los datos de un usuario, el otro subsistema esté leyendo, provocando errores de coherencia en los datos, o incluso errores impredecibles. El diseño concurrente facilita que se pueda desabilitar cómodamente el subsistema de control de usuarios, manteniendo el otro subsistema funcionando, tal y como se especifica en los requisitos. También es necesario implementar un registro de las incidencias de todas las conexiónes a modo de \emph{log}. El sistema de \emph{logs}, tiene dos opciones (de compilación): imprimir las incidencias por la salida estándar o volcarlas al sistema de logs que ofrece Linux (syslog).
+
+\subsection{Configuración}
+
+Todas las opciones que necesita el programa, las lee a partir del fichero de configuración, al arrancar. El fichero de configuración es el único parámetro que puede recibir el programa al ser lanzado y debe contener todas las siguientes opciones, todas ellas dentro de la sección \emph{[SSIP\_PROXY]}:
+
+\begin{description}
+	\item [db\_file]: path absoluto del fichero que va a servir de base de datos de los usuarios del proxy. Si no existe será creado.
+	\item [username\_manage]: nombre del proxy.
+	\item [hostip\_manage]: interfaz de red (dirección IP) en la que esperará las peticiones de negociación de sesión SSIP.
+	\item [port\_manage]: puerto en que escuchará el proceso de negociación SSIP.
+	\item [num\_forks\_manage]: opción de seguridad, indica el número máximo (límite) de procesos hijo -para atender negociaciones SSIP- que pueden ser creados.
+	\item [username\_notify]: nombre del usuario virtual de notificación del proxy.
+	\item [hostip\_notify]: interfaz de red (dirección IP) en la que será lanzado el proceso de control de usuarios con el protocolo \emph{NOTIFY}.
+	\item [port\_notify]: puerto en que escuchará el proceso de contol de usuarios (notificación con el protocolo \emph{NOTIFY}).
+\end{description}
+
+A continuación se muestra un ejemplo del fichero de configuración típico:
+
+\begin{center}
+\begin{boxit}
+\begin{verbatim}
+#
+# SSIP Proxy Configuration file
+#
+#
+
+[SSIP_PROXY]
+
+db_file=/home/riguera/PROYECTO/ssip_server/users_db.txt
+
+username_manage=ssips
+hostip_manage=192.168.1.2
+port_manage=40000
+num_forks_manage=10
+
+username_notify=ssips
+hostip_notify=192.168.1.2
+port_notify=30000
+
+\end{verbatim}
+\end{boxit}
+\end{center}
+
+Para procesar el fichero de configuración, se usa el mismo TDA definido para \software .
+
+\subsection{Subsistema de control de usuarios}
+
+También llamado subsistema de notificación. Su función es actualizar la base de datos del proxy, es decir, este subsistema controla los usuarios que emplean el proxy. Cada vez que un usario lanza su programa \software , éste notifica al proxy que el usuario ya está online y listo para recibir llamadas. En la notificación se envía el nombre del usuario, el nombre su máquina y el número de puerto SSIP (de ese usuario) en donde recibir las conexiones de negociación. Para ésta tarea se creó el protocolo \emph{NOTIFY}. \\
+
+La base de datos en donde se almacenan los usuarios del proxy, es el mismo TDA usado para la configuración de  \software . Se optó por esa solución porque: cumple con los requisitos establecidos, se reutiliza el código y presenta una velocidad de proceso aceptable. El siguiente ejemplo muestra cómo es la base de datos por dentro:
+
+\begin{center}
+\begin{boxit}
+\begin{verbatim}
+[riguera]
+host=192.168.1.2
+port=10000
+password=3jjlvwn
+\end{verbatim}
+\end{boxit}
+\end{center}
+
+De esta forma, un administrador, puede editar fácilmente el fichero y borrar o inutilizar a determinados usuarios. Los resultados del ejemplo son interpretados de esta forma: \\
+
+El usuario ``riguera'' se encuentra en el host ``192.168.1.2'' esperando negociaciones SSIP en el puerto $10000$. El tercer campo es el ``password'' que aportó el usuario al iniciar su sesión con el proxy. Para que este usuario pueda borrar su registro en el proxy, deberá aportar el mismo ``password''. Esto es asi, para evitar que usuarios malintencionados borren a otros usuarios del proxy, lo cual provocaría que nunca podrían recibir llamadas.
+
+\subsubsection{Protocolo NOTIFY}
+
+Se desarrolló a partir de SSIP. Descripción de los campos de NOTIFY, de los paquetes que se envian al proxy:
+
+\begin{description}
+	\item [\emph{IPMODE}:] determina si el paquete contiene direcciones ip de IPv6 o IPv4. El valor de este campo modifica el tamaño de toda la estructura del paquete.
+	\item [\emph{FROM\_USER}:] contiene el identificador de usuario que envía el paquete.
+	\item [\emph{FROM\_ADDR}:] dirección IP del host en que se encuentra el usuario que ha enviado el paquete.
+	\item [\emph{FROM\_PORT}:] número de puerto SSIP en el que se negociaran las sesiones para el usuario con el protocolo SSIP en su host.
+	\item [\emph{TO\_USER}:] identificador al que va dirigido el paquete. Está reservado para futuro uso, para diferenciar distintos proxys. En esta versión el contenido de este campo es irrelevante.
+	\item [\emph{TO\_ADDR}:] contiene la dirección IP del proxy al que va dirigido el paquete.
+	\item [\emph{TO\_PORT}:] puerto del proxy al que va dirigido el paquete NOTIFY.
+	\item [\emph{DATA}:] contiene una contraseña generada aleatoriamente, que el proxy almacenará en su base de datos.
+	\item[ \emph{TYPE}:] identifica el tipo de paquete.
+\end{description}
+
+El contenido de todos los campos \emph{FROM\_*} y \emph{TO\_*} de los paquetes NOTIFY que se reciben del proxy es el mismo que se envia -si todo transcurre correctamente-, pero permutado, es decir, los campos TO\_* contendrán el valor que se había enviado antes en los campos FROM\_* y viceversa. \\
+
+En esta parte no es necesario indicar el tamaño de los campos, ya que es el diseño lógico. Además el tamaño varía, dependiendo de si los campos de las direcciones IP contienen IPv6 o IPv4. En el capítulo () se mostrará como se solucionó el problema de conflitos entre IPv4 e IPv6. \\
+
+NOTIFY, dispone de los siguientes tipos de paquetes (campo TYPE), dependiendo del tipo de paquete, la información del resto de los campos puede cambiar de significado:
+
+\begin{description}
+	\item [\emph{USER\_HELO\_ONLINE}:] es el primer paquete que envía \software al proxy. Su misión es indicar que el usuario ya está online y listo para recibir llamadas.
+	\item [\emph{USER\_OK\_ONLINE}:] es la respuesta que envia el proxy, cuando se le ha enviado un \emph{USER\_HELO\_ONLINE}, para indicar que el proceso ha ido bien y ese usuario ha sido añadido a la base de datos. 
+	\item [\emph{USER\_BYE\_ONLINE}:] se envía para indicar que el usuario se da de baja en el proxy. Su misión es indicar que el usuario no está online y no va a admitir llamadas.
+	\item [\emph{USER\_OK\_OFFLINE}:] es la respuesta que envía el proxy tras un USER\_BYE\_ONLINE para indicar que el proceso ha ido bien y ese usuario ha sido dado de baja.
+	\item [\emph{USER\_INCORRECT}:] es la respuesta que envia el proxy tras un USER\_HELO\_ONLINE o un USER\_BYE\_ONLINE.  Si el proxy lo envía tras recibir un USER\_HELO\_ONLINE, significa que ya existe un usuario en la base de datos con el mismo nombre. Si es enviado tras un USER\_BYE\_ONLINE, se puede dar una de estas dos situaciones:
+		\begin{enumerate}
+			\item Que el usuario no exista en la base de datos.
+			\item Que la contraseña para ese usuario, indicada en el campo DATA, no sea la misma con la que inició la sesion, en este caso, el usuario no será borrado de la base de datos, continuando online.
+		\end{enumerate}
+	\item [\emph{ERROR\_PKT}:] este paquete lo envía el proxy cuando ocurre un error grave e inesperado (no encuentra la base de datos, no hay espacio en disco, etc.) y no puede llevar a cabo la operación solicitada por el paquete que ha recibido de \software . En este caso, en el campo DATA, se envía un \emph{string} con la descripción del problema o error que motivó el fallo.
+\end{description}
+
+El contenido de todos los campos FROM\_* y TO\_* de los paquetes NOTIFY que se reciben del proxy es el mismo que se ha sido enviado, pero permutado, es decir, los campos TO\_* contendrán ahora el valor que se había enviado antes en los campos FROM\_* y viceversa. NOTIFY funciona de forma simple, es un protocolo que sólo contiene dos transacciones: el cliente \software envia un paquete y el proxy siempre debe responder con otro paquete y fin de la transacción. El cliente siempre es el encargado de iniciar la conexión y el proxy de terminarla. \\
+
+\subsubsection{Funcionamiento}
+
+Debido que este subsistema no va a presentar mucha sobrecarga -un usuario sólo se notifica al darse de alta en el proxy o al abandonarlo- y las transaciones son muy cortas -sólo dos paquetes NOTIFY-, se ha diseñado para que atienda las notificaciones secuencialmente, es decir, hasta que no haya finalizado una notificación, no atiende a otra, lo que implica que no hay procesos concurrentes dentro del subsistema. Hay que considerar la posibilidad de que se quede \emph{colgada} (a medias) una transacción, como este subsistema es secuencial, si esto ocurre, se bloquearía todo el proceso de control de usuarios.
+
+El funcionamiento de este subsistema transcurre de este modo:
+
+\begin{enumerate}
+	\item El proceso recibe un paquete NOTIFY procedente de un cliente. Si no es de tipo USER\_HELO\_ONLINE o USER\_BYE\_ONLINE o no reconoce el formato, se ignora y finaliza.
+	\item Si el paquete NOTIFY es de tipo USER\_HELO\_ONLINE, se busca el usuario en la base de datos. Si el usuario ya existe se constesta con un paquete USER\_INCORRECT, en otro caso se almacena sus datos (usuario, host, puerto y clave) en la base de datos y se contesta con un paquete de tipo USER\_OK\_ONLINE.
+	\item Si el paquete NOTIFY es de tipo USER\_BYE\_ONLINE, se busca el usuario en la base de datos. Si el usuario existe y la clave del paquete coincide con la almacenada en la BD, se constesta con un paquete USER\_OK\_OFFLINE y se borran todos los datos de la BD. En otro caso se constesta con un paquete de tipo USER\_INCORRECT y la BD no se modifica.
+	\item Si durante el proceso de notificación se produce algún error en el proxy, se envía al cliente un paquete de tipo ERROR\_PKT, con el mensaje de error en el campo DATA.
+\end{enumerate}
+
+\subsection{Subsistema de negociación}
+
+Este subsitema se encarga de la negociación SSIP del inicio de sesión. Es, realmente, la parte que actúa de proxy, ya que canaliza la comunicación entre el programa cliente (del usuario que llama) y el programa servidor (programa del usario al que se dirige la llamada -con el que se desea contactar-). El proceso de negociación es totalmente transparente para el usuario que inicia la llamada (figura \ref{fig:proxy2}). 
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=11cm, height=7cm] {neg_SSIP.eps}
+\caption{Negociacion SSIP a través del proxy}
+\label{fig:proxy2}
+\end{figure}
+
+El proceso de negociación con proxy es compatible con la negociación sin proxy, es decir sigue el mismo diagrama de estados mostrado anteriormente en la figura (). Sucede de la siguiente forma:
+\begin{enumerate}
+	\item El cliente envía un paquete SSIP de tipo CONNECT\_HELO, que contiene información del usuario que realiza la llamada. En el paquete se indica el usuario con el que contactar y el host en donde está, que en este caso es el proxy.
+	\item El proxy recibe el paquete, comprueba que es de tipo CONNECT\_HELO, y busca el usuario en su base de datos, si no lo encuentra, le reenvía al cliente un CONNECT\_BYE y finaliza la comunicación.
+	\item Si el usuario existe en ese ámbito (está en la base de datos), el proxy obtiene los datos necesarios del usuario al que se dirige la llamada, es decir, obtiene el puerto y el host real. Crea una conexión con el programa del cliente llamado, que actuará como servidor, y le envía el paquete SSIP con el que se inicio todo este proceso.
+	\item Si el servidor (programa del cliente al que se llama) responde con un paquete CONNECT\_VALIDUSER, el proxy crea un canal de comunicación bidireccional entre ambos programas. A partir de este momento el proxy, sólo se limita a actuar de enlace hasta que finalize la comunicación, suceda un error u ocurra un timeout. En el caso de que ocurra un ``timeout'', antes de cortar la comunicación, se envía un CONNECT\_ERROR al otro canal de enlace.
+\end{enumerate}
+
+Como se puede apreciar, el proxy enmascara a todos los usuarios que contiene en la base de datos. Otra consideración que se ha tenido en cuenta es la carga de este subsistema. Al contrario que ocurre con el subsistema de negociación, atiende las peticiones secuencialemente -sin crear otros procesos hijos-, este subsistema crea un proceso hijo para cada petición que atiende.
+
+\subsection{Control de concurrencia}
+
+En este sistema no hay \emph{threads}, sólo hay -como mínimo- dos procesos concurrentes que acceden a la base de datos. Para el control de concurrencia entre ambos procesos, en el acceso al fichero de la base de datos, el demonio \emph{Proxy SSIP} crea un fichero ``.lck'' -vacío- que se bloquea para lectura o escritura por cada proceso concurrente, el tipo de bloqueo de este fichero, determina la operación que está teniendo lugar con el fichero de la base de datos de los usuarios. 
+
+\subsection{Seguridad}
+
+Todo el \textbf{Proxy SSIP}, está diseñado teniendo en mente consideraciones de seguridad, por esa razón se realizan continuamente controles de datos y longitud de campos de los paquetes recibidos, ``logeando'' cualquier operación sospechosa mediante \emph{syslog}. Pese a que este proceso no necesita privilegios especiales en el sistema -por esa razón se recomienda ejecutarlo como un usuario normal, no privilegiado- el lugar que ocupa en la red -en una pasarela o gateway- lo hace un blanco fácil para distintos tipos de ataques (overflow, DoS, etc.). También dispone de un control de número procesos hijo, para evitar ataques de \emph{DoS} (Denegación de Servicio), de forma que sólo permite que existan como maximo el número de hijos que se indique en el fichero de configuración.
+

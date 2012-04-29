@@ -1,0 +1,39 @@
+\capitulo{Introducción}
+\label{chp:introduccion}
+\minitoc
+\newpage
+
+
+\section{Prólogo}
+
+Tradicionalmente los servicios de telefonía y de datos han estado soportados por sistemas de redes distintos, basadas en tecnologías muy diferentes. Para el transporte de voz se usaban -y usan- principamente las redes telefónicas clásicas que emplean \emph{señales analógicas} junto con técnicas de \emph{conmutación de circuitos}. Por otra parte las redes de datos telemáticos son redes digitales y emplean una filosofía basada en la \emph{conmutación de paquetes}, como ocurre, por ejemplo, con el protocolo de Internet (\emph{IP}). \\
+
+El desarrollo y maduración de las técnicas de transmisión de voz sobre redes de paquetes ha dado lugar a una fuerte tendencia hacia la integración del tráfico de voz en las redes de datos. En la actualidad es frecuente escuchar términos como ``convergencia de redes'' ó ``convergencia de voz y datos'' para denominar a esta tendencia. Las ventajas que ofrece la convergencia de redes han sido en un principio de índole económica. Tecnologías como \emph{VoIP} hacen un uso mucho más eficiente del ancho de banda de la red, y permiten ahorrar en los costes de gestión y mantenimiento de redes, ya que solamente se utiliza una única red para ambos servicios. \\
+
+Sin embargo, no sólo las razones económicas son las que justifican el interés en hacer converger las redes de voz y datos. La principal razón son las aplicaciones. La integración de redes facilita la creación de nuevas aplicaciones que comprenden voz y datos, como la mensajería unificada, que permitirá englobar bajo un único interfaz de usuario, accesible desde cualquier parte de la red, a todos los servicios a través de los cuales recibir mensajes (correo electrónico, fax, teléfonos, contestadores, etc.). O, por citar otros ejemplos, la integración de los centros de llamadas en los servidores web corporativos, que permitirán una atención rápida y especializada a los clientes; las aplicaciones de videoconferencia, la teleenseñanza, etc. Por otro lado, la utilización del protocolo \emph{IP} facilita la creación de aplicaciones, ya que permite conectar la mayoría de los dispositivos; basta con desarrollar la aplicación una única vez y luego usarla en muchos tipos de redes diferentes. Aplicaciones que, aunque no técnicamente imposibles, serían de muy difícil realización sobre redes separadas. \\
+
+Actualmente, gracias al avance tecnológico, ya es posible implantar, fácil y prácticamente sin costos, un sistema de \emph{VoIP} en una red corporativa. Además, las empresas de telecomunicaciones (Cisco, Ericsson, etc) ofrecen pasarelas capaces de enlazar redes datos \emph{IP} con las redes de telefonía tradicional basadas en centrales telefónicas de conmutación (\emph{PBX}), permitiendo una implantación completa e integral. \\
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=\textwidth] {integracion_voip.eps}
+\caption{Fases del proceso de integración de las redes de voz y datos, con sus características y ventajas más destacables}
+\label{fig:integracion_vopi}
+\end{figure}
+
+
+\section{Organización y contenido de esta memoria}
+
+Esta memoria se ha estructurado del siguiente modo:\\
+
+Tras una breve introducción en la que se detalla la importancia de la integración de las redes de voz y datos, se procede a realizar un análisis de viabilidad (Capítulo \ref{chp:plan_proyecto}), en donde se describe el proyecto -objetivos, motivaciones, recursos, riesgos, etc.- y las principales decisiones preliminares adoptadas. En ese mismo capítulo se analizan los antecedentes y las características, diseño, etc. de otras tecnologías u otras herramientas similares que van a rivalizar con este proyecto, es decir, se muestra el estado del arte. \\
+
+A continuación se introduce al lector en las tecnologías elegidas para el desarrollo del proyecto (capítulo \ref{chp:analisis_tecnologico}). Cabe resaltar que, debido a la multitud de tecnologías tratadas, no se profundizará demasiado en cada una, pero, se tratará lo mínimo para que el lector comprenda los conceptos empleados en el proyecto, el trabajo de ampliar los conocimientos se deja al interesado. \\
+
+En el siguiente capítulo se muestra las especificaciones y requerimientos. En base a esas especificaciones se realiza un diseño (capítulo \ref{chp:diseno}), se detalla la organización y esctructura del sistema, en donde se muestran los subsistemas clave del proyecto y sus inter-relaciones. \\
+
+Una vez inciado el desarrollo técnico, se exponen los detalles de la codificación (capítulo \ref{chp:implementacion}). Se muestran todas las decisiones de implementación tomadas. Se explican qué algoritmos se aplicaron para resolver ciertos aspectos del diseño, etc. En el siguiente capítulo se muestran algunas de las pruebas realizadas durante el desarrollo del proyecto junto con detalles del rendimiento del programa. \\
+
+Tras la implementación, se detallan los objetivos logrados, las ampliaciones realizadas al proyecto original, las posibles mejoras para versiones futuras, etc. También se exponen las conclusiones alcanzadas una vez finalizado este trabajo. Todo esto en el último capítulo \ref{chp:conclusiones}. \\
+
+

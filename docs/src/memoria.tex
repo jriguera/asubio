@@ -1,0 +1,95 @@
+\documentclass[11pt, twoside, onecolumn, a4paper, spanish]{book}
+
+\usepackage{estilo_pfc}
+\usepackage{graphics}
+\usepackage{latexsym}
+\usepackage{setspace}
+\usepackage{rotate}
+\usepackage{epsfig}
+\usepackage{color}
+\usepackage{wrapfig}
+%\usepackage[bookmarks=true,bookmarksopen=truembookmarksnumber=true]{hyperref}
+
+% Carga y configura el paquete listings para C
+\definecolor{sourcecode}{rgb}{.8705,.8588,.8392}
+
+\usepackage{listings}
+\usepackage{lstlang2}
+\lstset{
+	language={C},
+	extendedchars=true,
+	tabsize=3,
+	backgroundcolor=\color{sourcecode},
+	frame=single, 
+	framerule=0pt,
+	basicstyle=\scriptsize,
+	morekeywords={gint,gchar,gdouble,gfloat,gboolean,gpointer,FALSE,TRUE},
+	commentstyle=\it,
+	numbers=left,
+	numberstyle=\tiny\sc,
+	stepnumber=5,
+	numbersep=0.5cm,
+	escapechar=\@,
+}
+
+
+\begin{document}
+
+\include{portada}
+
+\include{entrega}
+
+\include{dedicatoria}
+
+\include{agradecimientos}
+
+\include{resumen}
+
+\pagenumbering{roman}
+\pagestyle{empty}
+\dominitoc
+\setcounter{page}{1}
+\tableofcontents
+\nuevoParrafo
+                              
+\pagenumbering{arabic}
+\pagestyle{myheadings}
+\setcounter{page}{1}
+
+\include{introduccion}
+
+\include{plan_proyecto}
+
+\include{analisis_tecnologico}
+
+\include{analisis_requisitos}
+
+\include{diseno}
+
+\include{implementacion}
+
+\include{pruebas}
+
+\include{conclusiones}
+
+\bibliographystyle{plain}
+\bibliography{memoria}
+
+\nocite{RTP_RFC}
+\nocite{SDP_RFC}
+\nocite{Jon}
+\nocite{Tennenhouse}
+\nocite{Stevens90a}
+\nocite{IVD}
+\nocite{KW}
+\nocite{REVO}
+\nocite{Nichols:1996:PP}
+\nocite{Liu98}
+\nocite{RAT}
+\nocite{IETF}
+\nocite{ITU}
+\nocite{GOO}
+\nocite{OSS}
+
+\end{document}
+

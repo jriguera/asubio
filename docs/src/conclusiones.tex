@@ -1,0 +1,118 @@
+\capitulo{Conclusiones}
+\label{chp:conclusiones}
+\minitoc
+\newpage
+
+Durante el desarrollo de esta memoria se han expuesto todos los detalles acerca de la creación de este ``Servicio de talk verbal''. Aquí se muestran las comparativas, posibles mejoras o ampliaciones y las conclusiones extraídas de la realización del proyecto.
+
+\section{Concordancia entre resultados y objetivos}
+
+Está bastante claro que al final, el proyecto ha superado la propuesta inicial. Mientras que inicialmente, se proponía construir simplemente un servicio de talk verbal para Linux y, como posible ampliación, el desarrollo de plugins de compresión de audio. El proyecto final tiene como características más relevantes:
+
+\begin{itemize}
+	\item Soporte de multisesión. El usuario del programa puede conectar con varias personas simultáneamente, sin necesidad de redes multicast. Incluso tiene capacidad para realizar coloquios a tres o más bandas.
+	\item Soporte completo de IPv6. El programa está perfectamente adaptado para funcionar con la próxima generación de IP. También soporta redes multicast, tanto en IPv4 como en IPv6.
+	\item Arquitectura totalmente abierta. Si inicialmente se barajaba la posibilidad de la implementación de plugins de compresisón de audio. Esta característica ha sido ampliamente superada, ahora no sólo soporta plugins de compresión de audio, también de efectos: para grabar conversaciones, modificar la voz, etc. y de E/S de audio: para OSS, ALSA, para Windows con su sistema de audio, etc.
+	\item Portabilidad. El empleo de determinadas librerías, implica que el programa no sólo funciona en Linux, sino que en otros sistemas compatibles Unix (POXIX). Incluso puede ser portado fácil e inmediatamente a plataformas Windows cambiando el API de sockets por WinSock.
+	\item Comunicación full-duplex. Al igual que ocurre con el teléfono, admite la comunicación bidireccional simultánea.
+	\item Sistema de negociación de inicio de sesión. Permite que los usuarios puedan seleccionar los codecs que van a ser usados en la comunicación y otros parámetros.
+	\item Soporte para cambio dinámico de plugin de compresión, el usuario tiene libertad para cambiar el algoritmo de compresión que usa en la comunicación, de este modo
+se puede adaptar a nuevas características de la red: mayor o menor consumo de ancho de banda,  retardos, etc
+	\item GUI intuitiva y rápida. Cada persona puede tener asignada una foto, de modo que resulta más fácil conocer de un vistazo quién llama. Además dispone de una agenda que almacena los contactos para llamarlos con sólo dos ``clicks'' de ratón. El formato de la agenda se almacena en XML, de esta forma puede ser exportado fácilmente a/desde otras aplicaciones.
+	\item Aparte de los controles de audio tradicionales -volumen y ganancia- dispone de VAD (Voice Activity Detection) y CNG (Comfort Noise Generation). El VAD permite ahorrar ancho de banda en la transmisión, al eliminar los silencios. El CNG, hace creer al usuario que la comunicación está activa cuando se usa VAD, así se evitan expresiones del tipo ``me escuchas'', ``sigues ahí'', etc. También puede cortar el audio del micrófono y/o altavoz para un usuario en particular o para todos. Dispone también de un amplificador de audio para cada usuario.
+	\item Totalmente compatible con el estándar RTP/RTCP (RFC 1889). Esto garantiza la interoperabilidad con otros programas. Además soporta el cifrado de la conexión RTP/RTCP con el algoritmo DES.
+	\item Proxy. Se ha desarrollado un programa adiccional llamado \textbf{Proxy SSIP} que permite que el programa principal sea usado en subredes destrás de NAT. También permite gestionar a muchos usuarios simultáneamente.
+\end{itemize}
+
+Como se puede observar, todas estas características superan ampliamente los objetivos de la propuesta inicial, si bien el autor todavía no está conforme y planea aumentar esta lista de características, como se mostrará en la sección \ref{ampliaciones} ``Mejoras y ampliaciones''.
+
+\section{Comparativa con otros programas}
+
+Se va a comparar el software desarrollado con las aplicaciones analizadas inicialmente en el capítulo \ref{chp:plan_proyecto}:
+
+\paragraph{Linphone.} Características de {\it Linphone} comparadas con \software :
+\begin{itemize}
+	\item Ambos están inicialmente desarrollados para linux u otras plataformas compatibles \emph{Unix}.
+	\item GUI intuitivas y fáciles de usar. {\it Linphone} se ha desarrollado con GNOME, mientras que \software se ha desarrollado con GTK+ (a más bajo nivel). {\it Linphone} dispone de una aplicación para consola {\it linphonec}, por lo que no necesita el sistema gráfico para funcionar. También dispone -en la última versión- de una agenda de contactos, al igual que \software , si bien la agenda no está en formato XML.
+	\item {\it Linphone} incluye una gran variedad de codecs compresores de audio: ADPCM. GSM, Speex, etc. pero todos están integrados en el código, es decir no dispone de plugins.
+	\item Utiliza el protocolo SIP para negociar el inicio de sesión. \software \ usa un protocolo implementado especialmente: SSIP. La ventaja es que SIP está estandarizado.
+	\item Ambos proyectos son de software libre, liberados bajo los términos de la \emph{GPL}.
+	\item No tiene capacidad de multisesión, VAD, CNG, control de ganancia de audio para cada usuario. Tampoco puede mostrar una foto del usuario que llama o está conversando.
+	\item Ambos programas tienen la posibilidad de cambio dinámico de codec de compresión de audio en medio de una conversación.
+	\item {\it Linphone} tiene una aquitectura cerrada, no dispone de plugins. \software \ puede cargar plugins para tres funciones distintas.
+	\item Ambos están programados en C, pero {\it Linphone} usa más exhativamente OO.
+	\item {\it Linphone} no soporta cifrado de RTP ni el protocolo RTCP.
+\end{itemize}
+
+La ventaja más significativa de {\it Linphone} respecto \software \  es el uso de SIP como protocolo de inicio de sesión.
+
+\paragraph{Speak Freely.}
+\begin{itemize}
+	\item {\it Speak Freely} es multiplataforma, existen versiones tanto para sistemas \emph{Unix} como \emph{Windows}. \software \ sólo funciona -de momento- en plataformas \emph{Unix}.
+	\item {\it Speak Freely} tiene interoperabilidad con ICQ, un servicio de mensajería instantánea.
+	\item La GUI de {\it Speak Freely} está realizada con wxWindows, mientras que \software \  se ha desarrollado con GTK+.
+	\item Ambos permiten charlar con varias personas a la vez, sin necesidad de estar en redes \emph{multicasting}.
+	\item {\it Speak Freely} Permite grabar mensajes de voz que informen a la persona llamante de que no está disponible.
+	\item Ambos soportan cifrado RTP, pero {\it Speak Freely} implementa varios algoritmos de cifrado: DES, IDEA, PGP, Blowfish, etc.
+	\item Aparte de RTP, implementa el protocolo \emph{VAT} (Visual Audio Tool), un protocolo muy simple de streaming de audio en tiempo real. Esta característica no es significativa actualmente, ya que es protocolo es antiguo y no está estandarizado.
+	\item {\it Speak Freely} soporta estos codecs compresores de audio: DVI4, GSM, L16, LPC, PCMA y PCMU, pero están integrados dentro del programa, no tiene plugins.
+	\item Ambos programas tienen la posibilidad de cambio dinámico de codec de compresión de audio, en medio de una conversación activa.
+	\item Ambos proyectos son de software libre, liberados bajo los términos de la \emph{GPL}.
+	\item Ambos están programados en C.
+	\item No tiene capacidad de: VAD, CNG, control de ganancia de audio para cada usuario. Tampoco dispone de agenda de contactos, ni de plugins de ningún tipo.
+\end{itemize}
+
+{\it Speak Freely} no tiene ninguna ventaja significativa que mejore las prestaciones de \software .
+	
+\paragraph{RAT - Robust Audio Tool.}
+\begin{itemize}
+	\item Multiplataforma, FreeBSD, HP-UX, IRIX, Linux, NetBSD, Solaris, SunOS y Windows 95/NT. \software \  sólo ``corre'' -por ahora- en sistemas compatibles con POSIX.
+	\item Tiene una GUI poco actractiva y sin agenda de contactos.
+	\item Tanto {\it RAT} como \software \  incorporan técnicas de VAD.
+	\item Sporta multiconferencia, pero necesita redes \emph{multicasting}, mientras que con \software \  no es necesario disponer de una red \emph{multicast} para multisesión.
+	\item Completamente compatible con el estándar RTP/RTCP, puede incluso enviar audio redundante para contrarestar pérdidas de paquetes.
+	\item Soporta cifrado de sesiones RTP/RTCP con DES, al igual que \software
+	\item Soporta varios codecs compresores de audio: GSM, ADPCM (G.726), G.711 y LPC. Están integrados dentro del programa, no tiene plugins.
+	\item Es software libre, liberado bajo los términos de la \emph{GPL}.
+\end{itemize}
+
+La característica más significativa de {\it RAT} es que es el único programa que integra sistemas de envío de audio redundante, para evitar pérdidas de paquetes. Si bien esas ténicas no están estandarizadas, todavía están en fase ``draft'' o borrador, es decir, están en fase de estudio y pueden sufrir ligeras modificaciones. \\
+
+También hay que comentar que ninguno de los programas analizados (para Linux), disponen de la implementación de un proxy, capaz de realizar las gestiones de negociación de inicio de sesión de una forma fácil y cómoda para un grupo de usuarios o para una subred detrás de NAT. \\
+
+En general, las comparaciones, se resumen de esta forma: \software \  es una mezcla de características de varios programas, pero, también implementa otras que ninguno de los programas analizados posee. Por ejemplo su arquitectura modular que le permite cargar plugins que pueden extender su funcionalidad ilimitadamente. Asimismo, su comunicación mediante colas asíncronas entre threads, es un sistema que le aporta gran vesatilidad. \\
+
+Pero, también hay que tener en cuenta que, mientras que este proyecto tiene un tiempo de realización de menos de 9 meses, todos los programas anteriores cuentan con años de desarrollo, junto con muchos más desarrolladores y testeadores. 
+
+\section{Mejoras y ampliaciones}
+\label{ampliaciones}
+
+La versión actual de todo el software desarrollado se ha establecido en $0.1.0$. Esto puede dar una idea inicial de hasta donde pretende llegar, porque, aparte de ser completamente funcional, se pretende seguir ampliando el programa con ayuda de desarrolladores del ancho  mundo, gracias a la filosofía del software libre. Para ello existe una cuenta de desarrollo en {\it http://asubio.sourceforge.net}. \\
+
+A continuación se presenta una lista con las mejoras o ampliaciones más prioritarias que deberían ser aplicadas al proyecto:
+
+\begin{enumerate}
+	\item Desarrollo de nuevos plugins de compresión de audio, así se podría elegir más variedad de algoritmos con distinto ancho de banda. También es necesario implementar nuevos \emph{InOut Plugin} que den soporte a ALSA, por ejemplo.
+	\item Desarrollar un agente de usuario interno con el protocolo SIP, sólo con esta mejora, se podría pasar a la versión $0.2.0$, ya que supone un salto muy importante tanto en compatibilidad con otros programas como en cumplimiento de estándares. Por contra, la implementación de H.323 no corre tanta prioridad, pudiendo ser añadida en versiones superiores a la $1.0.0$, ya que este protocolo es cerrado y rígido.
+	\item Implemetar varios sistemas de reparación de audio, lo que permitiría que, aunque se pierdan paquetes RTP, el usuario no note esas pérdidas. Existen varias estrategias para resolver el problema, detalladas en distintos borradores de internet:
+\begin{description}
+		\item[Envío redundante de audio.] Cada vez que se envía un paquete, se aprobecha para enviar los $n$ anteriores, conjuntamente. De esta forma, si se pierde algún paquete, sólo es necesario esperar al siguiente, el cual contendrá el audio para el instante actual y para $n$ instantes anteriores. El problema se produce cuando se pierden $n$ paquetes o más, no existen posibilidades de reparación. El inconveniente de este sistema es que multiplica por $n$ el ancho de banda requerido y, en el peor de los casos, se puede producir un retardo de varios segundos en el audio recibido.
+		\item[Entrelazado de audio] Una vez formado un bloque de audio, se divide en $n$ trozos, forma un nuevo bloque compuesto por $n$ trozos ordenados secuencialmente de los paquetes originales, y se envía ese bloque compuesto. Para recomponer un bloque, es necesario esperar la llegada de $n$. La ventaja de este sistema es que no aumenta el ancho de banda consumido, pero la conversación sufre un retardo constante de varios segundos, debido a la necesidad de esperar la llegada de $n$ bloques. Si se pierde un bloque el usuario no notará nada, ya que afectará mínimamente a los $n$ bloques sucesivos.
+\end{description}
+	\item Añadir portabilidad a otras plataformas, como Windows, para ello habrá que implementar un plugin que acceda al sonido en esa plataforma y añadir soporte para WinSock.
+\end{enumerate}
+
+\section{Conclusiones del proyecto}
+
+Como se puede apreciar las tecnologías aplicadas funcionan de forma bastante razonable. La implementación del prototipo demostró que era perfectamente factible llevar a la práctica el análisis y diseño propuestos y que el objetivo que se trató de perseguir desde un primer momento podía ser cumplido. \\
+
+Las pruebas realizadas con el prototipo y su comparativa con otros proyectos similares han demostrado que en determinadas características iguala o incluso supera a sus competidores. Por otra parte, que este proyecto pueda comportarse tan bien o en ocasiones incluso mejor que algunos programas desarrollados por empresas, demuestra que las decisiones en cuanto a eficiencia fueron, aunque seguramente mejorables, bastante buenas. \\
+
+El diseño de la GUI y de la ventana de configuración, basados en pestañas, permiten añadir nuevas funcionalidades al interfaz gráfico, sin apenas modificar el diseño. Sólo basta con añadir nuevas pestañas que configuren nuevos parámetros. \\
+
+El modelo multi-hilo utilizado reacciona y se comporta bastante bien en situaciones de carga elevada si bien llega un límite (de sesiones) a partir del cual el rendindimiento se reduce, pero este problema puede resolverse simplemente mejorando el hardware sobre el que corre el programa. Además, el diseño utilizado para el acceso al audio mediante una capa de abstracción del dispositivo de audio, ha mostrado que supera al enfoque utilizado por otros programas que: o bien no soportan multisesión o bien no soportan el cambio dinámico de codec de compresión de audio (plugin). El sistema de plugins permite extender la funcionalidad de todo el sistema de forma fácil, rápida y cómoda. También el uso de estándares como RTP garantiza la compatibilidad con otros programas. La posibilidad de uso de IPv6, junto con el soporte para redes multicast, garantiza larga vida a este software, ya está adaptado para el futuro próximo. \\
+
+El modelo flexible de implementación, mezclando técnicas de OO con programación tradicional, basada en TDA's ha mostrado, una gran flexibilidad a la hora de desarrollar ciertos subsistemas, sin comprometer la eficiencia y el rendimiento. Además ese modelo permitirá implementar fácilmente nuevas características. Por ejemplo, para añadir el ansiado soporte  de SIP, basta con modificar sólo dos funciones: una para la negociación de paquetes de entrada y otra para los de salida. \\
+
+Pronto habrá más información en la página web oficial del proyecto: {\it http://asubio.sf.net}
+

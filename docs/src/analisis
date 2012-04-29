@@ -1,0 +1,102 @@
+
+
+ La técnica de PCM más habitual utiliza el teorema de Nyquist, 
+ que dice básicamente que si se muestrea al doble de la frecuencia más alta
+ en una lína de voz, se consigue una transmisión de voz de buena calidad.
+ 
+ El proceso de PCM es el siguiente:
+ 
+ Las formas de onda analógicas se pasan por un filtro de frecuencia de voz
+ para filtrar cualquier cosa que sea mayor de 4000Hz. Al utilizar el teorema de
+ Nyquist, se necesita muestrear a 8000 muestras por segundo para alcanzar una
+ transmisión de voz de buena calidad.
+ 
+ 
+ La señal analógica filtrada es luego muestreada a una velocidad de 8000 veces
+ por segundo.
+ 
+ Cuando se ha muestreado la forma de onda, ésta se convierte en una onda digital
+ discreta. Esta muestra está representada pro un código que indica la amplitud
+ de la forma de onda en el instante en que se tomó la muestra. La forma de 
+ telefonía de PCM utiliza 8 bits para el código y un método de compresión 
+ logarítmico que asigna más bits para señales de amplitud más baja.
+ 
+ Si se multiplican las palabras de 8 bits a 8000Hz, se obtienen 64000 bits por 
+ segundo (bps). La base para la infraestructura del teléfono es 64000 bps
+ (64 kbps).
+ 
+ Normalmente, se utilizan dos variaciones básicas de PCM de 64 kbps; la ley u, que es
+ la estándar usada en EEUU, y la ley a, que es la estándar utilizada en Europa.
+ Los dos métodos son similares en cuanto ambos utilizan la compresión logarítmica
+ para pasar de 12 a 13 bits de calidad PCM lineal en palabras que tienen sólo 8 btis,
+ pero se diferencian en detalles de compresión relativamente pequeños. El método
+ de la ley u tiene una pequeña ventaja sobre el método de la ley a en términos de
+ rendimiento de la relación señal-ruido de bajo nivel.
+ 
+ 
+
+ 
+ Existen muchas y muy complejas técnicas para detectar la voz. Aquí se va a mostrar
+ la técnica mas básica de todas. Consiste, básicamente, en calcular la media ponderada
+ de la señal cuando no hay voz, para más tarde comparar ese valor promedio con
+ los obtenidos en las muestras actuales. Si superan ese valor se considerará que la señal
+ es válida -hay voz- en caso contrario se ignorará la muestra. Hay dos formas
+ para que se pueden usar para este menester:
+ 
+ \begin{description}
+ 	\item [Cálculo de la magnitud.] La magnitud se define como la suma del valor
+        absoluto de las muestras que se encuentran en una ventana; se divide por el
+        número de muestras para normalizar los resultados:
+	\begin{equation}
+	M(i) = \frac{1}{T_{v}} \sum_{k=0}^{T_{v}-1} \mid m(k) \mid
+	\end{equation}
+        siendo $M(i)$ la magnitud de la ventana $i$, $T_{v}$ el tamaño de la ventana 
+        y $m(k)$ la muestra de sonido capturada.
+ 	\item [Cálculo de la energía.] Se define como la suma de las muestras al cuadrado;
+        se divide por el número de muestras para normalizar los resultados.
+	\begin{equation}
+	M(i) = \frac{1}{T_{v}} \sum_{k=0}^{T_{v}-1}  m^{2}(k)
+	\end{equation}
+        siendo $E(i)$ la energía de la ventana $i$.
+\end{description} 
+
+Modificación del volumen en el audio digital:
+ 
+Para modificar el volumen, se multiplican todas las muestras por un determinado factor.
+si el factor es mayor que uno, se incrementa el volumen, si es menor que uno, se decrementa 
+y si es uno el volumen no varía. \\
+
+Hay que tener en cuenta que, si al multiplicar una muestra por un factor mayor que
+uno se produce desbordamiento se truncarán los dígitos superiores, pero,
+esa solución no es adecuada; lo correcto es dejar la muestra con el mayor valor  posible.
+Esto lo se debe implementar mediante codigo específico. Para el
+caso particular de pretender aumentar el volumen al máximo, sin que se produzca
+saturación, se debe buscar la muestra de mayor valor absoluto y calcular el factor 
+con el que multiplicar para convertir esta  muestra en el mayor valor que permita
+el rango. Posteriormente multiplicar todas las muestras por ese factor.
+
+                                                                       
+Mezcla de sonidos digitales:
+
+Basta con sumar las muestras de forma ordenada. Sólo hay que tener en cuenta que no se
+produzca truncamiento (\emph{clipping}). Para ello, antes de realizar al suma, se multiplica cada
+sonido por un factor menor que la unidad. Con esta regla se evita la posibilidad de que se
+produzca un truncamiento, pero en general, el volumen del sonido final es muy bajo, se debe
+reajustar para que ronde el 90% del rango permitido.
+
+El factor óptimo -menor que uno- con el que se deben multiplicar todas las muestras a 
+mezclar es el inverso del número de fuentes a mezclar, es decir $f = \frac{1}{N_{f}}$,
+donde $N_{f}$ es el número de fuentes.
+
+
+
+
+
+
+
+
+
+ 
+ 
+ 
+ 

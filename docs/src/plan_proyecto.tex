@@ -1,0 +1,208 @@
+\capitulo{Plan de proyecto}
+\label{chp:plan_proyecto}
+\minitoc
+\newpage
+
+Antes de la realización de un proyecto es necesario realizar una serie de análisis, más o menos profundos, dependiendo del tipo de sistema a desarrollar, para determinar su viabilidad y para intentar predecir los problemas que se encontrarán. Por ejemplo, si los problemas de desarrollo superan a las espectativas, no compensaría desarrollarlo. En este capítulo, se estudia el plan de proyecto para la propuesta mínima realizada, es decir, sin tener en cuenta las ampliaciones.
+
+\section{Análisis de viabilidad}
+
+Al emprender el desarrollo de un proyecto los recursos y el tiempo no son realistas para su materialización, sin tener pérdidas económicas ni frustración profesional. La viabilidad y el análisis de riesgos están relacionados de muchas maneras, si el riesgo del proyecto es alto, la viabilidad de producir software de calidad se reduce. En el presente capítulo se tratarán de definir estas áreas de interés:
+
+\begin{description}
+	\item [Descripcion] propuesta del proyecto.
+	\item [Objeto]: motivos, necesidades y ámbito de la realización del proyecto.
+	\item [Objetivos]: declaración del objetivo final del proyecto.
+	\item [Requerimientos y recursos necesarios] para el objetivo final.
+	\item [Sistema de Control], seguimiento de los hitos obligados del proyecto.
+	\item [Elementos de riesgo] que pueden hacer inviable el proyecto.
+	\item [Beneficios] esperados tras la realización del proyecto.
+	\item [Conclusiones]: posibilidades del proyecto.
+\end{description}
+
+\subsection{Descripción}
+
+El proyecto consiste en el desarrollo de una aplicación que use tecnología de \emph{VoIP} para proveer un servicio de talk, parecido al que existe en entornos \emph{Unix}, pero con la particularidad de ser un servicio verbal, es decir, la aplicación deberá permitir mantener una conversación entre dos personas.
+Para comenzar la conversación, el usuario indicará la dirección del otro interlocutor, y si éste existe y acepta, se establecerá una conexión entre ambos usuarios que les permitirá mantener un diálogo ``full-duplex'' (bidireccional), de la misma forma que ocurre en la línea telefónica tradicional. La dirección que especificará cada usuario tendrá el formato de \emph{URL}, es decir, {\it \textbf{usuario}@\textbf{host}[:\textbf{puerto}]}; por ejemplo {\it \textbf{riguera}@\textbf{incertidumbre.dyndns.org}[:\textbf{10000}]}. \\
+
+Ambos usuarios podrán variar el volumen de los altavoces y la sensibilidad de sus micrófonos. Una consideración importante será el ancho de banda consumido por el proceso de comunicación y el protocolo elegido para realizar la conexión. El ancho de banda y el protocolo elegido son dos características que dependerán del algoritmo de compresión de audio seleccionado. \\
+
+El software será desarrollado lo más modular posible, es decir, que use ``plugins'' que implementen diferentes algoritmos de compresión para la transmisión del audio, es decir, un desarrollo con una arquitectura abierta. \\
+
+Toda la documentación y software del proyecto, una vez rematado éste, quedarán liberados bajo las licencias \emph{GFDL}\footnote{GNU Free Document License} y \emph{GPL}\footnote{GNU General Public License}, respectivamente.
+
+\subsection{Objeto}
+
+Este proyecto surgió debido a la necesidad establecer una comunicación fácil y directa entre un grupo de desarrolladores de software. Un programador, en ocasiones, necesita hablar con el resto del grupo o con el jefe del proyecto para aclarar conceptos y, a veces, por problemas de espacio, está en un local o despacho alejado. Aunque normalmente existe la posiblidad de usar el teléfono, el mantenimiento y/o la instalación de una central telefónica -o del propio telefóno- puede resultar demasiado costoso. También existen aplicaciones de mensajería instantánea, pero es difícil escribir y discutir una idea por este sistema. La aplicación anteriormente propuesta, podría ser capaz de solucionar gran parte de estas incomodidades. A continuación se detallan sus ventajas e inconvenientes.
+
+\paragraph{Ventajas:}
+\begin{itemize}
+	\item No es necesaria la disponibilidad de una red de voz ni de terminales telefónicos.
+	\item Mejor rendimiento de las infraestructuras. Permite un aprovechamiento de óptimo de las redes de datos ya instaladas en la empresa.
+	\item Poca pérdida de tiempo, no es necesario conocer ni marcar ningún número teléfonico; la conexión es inmediata.
+	\item Actividad poco absorbente, el usuario puede hablar y hacer otra cosa al mismo tiempo, como por ejemplo escribir.
+\end{itemize}
+
+\paragraph{Inconvenientes,}las desventajas son muy pocas y fácilmente salvables:
+
+\begin{itemize}
+	\item Es necesaria una red IP.
+	\item El PC debe tener instalada y configurada una tarjeta de sonido, junto con altavoces y micrófono.
+\end{itemize}
+
+\subsection{Objetivos}
+
+En resumen, los \textbf{objetivos} mínimos propuestos para la finalización de todo el proyecto son, ordenados por prioridad:
+
+\begin{enumerate}
+	\item Construir un programa capaz de comprimir y enviar el audio capturado por el micrófono de un PC a otro y simultáneamente reproducir el audio recibido del PC remoto. El ordenador remoto efectuará la misma operación.
+	\item El software deberá tener una interfaz gráfica de usuario sencilla e intuitiva que permita realizar fácilmente las conexiones.
+	\item Los usuarios podrán ajustar parámetros de audio tales como volumen y ganancia.
+	\item Opcionalmente se considerará la implementación de un subsistema que use ``plugins'' y/u otras mejoras en el software.
+	\item Realización de esta memoria.
+\end{enumerate}
+
+Las principales \textbf{restricciones} que tendrá el proyecto son:
+\begin{itemize}
+	\item El sistema se desarrollará y documentará empleando la metodología de análisis y diseño estructurado.
+ 	\item El programa se ejecutará en máquinas de capacidad media (PII o superior) y con un sistema operativo con soporte multitarea \emph{GNU/LINUX}, y en un entorno gráfico \emph{Xwindows} (GNOME, KDE, etc)
+	\item Tiempo limitado.
+\end{itemize}
+
+\subsection{Requerimientos y recursos}
+
+\paragraph{Requerimientos,}para alcancar el objetivo final es necesario:
+
+\begin{itemize}
+	\item Un mínimo de dos PC's con el sistema operativo \emph{Linux}. Se usan para recopilar información, analizar, diseñar, programar y probar el software. También es necesario que los PC's tengan sendas tarjetas de sonido configuradas y que estén conectados por red \emph{IP}.
+	\item Dos pares de altavoces o auriculares y un par de micrófonos. Son necesarios para captar y reproducir el audio.
+	\item Acceso a documentación técnica sobre \emph{Linux}, muestreo de audio, compresión de audio, \emph{RFC's}, etc.
+\end{itemize}
+
+El tiempo máximo de elaboración asciende al período de un curso académico, aproximadamente 9 meses, con dedicación exlcusiva los últimos 6 meses y una única persona, que deberá planificar y realizar todas las fases del proyecto.
+
+\paragraph{Recursos:}
+
+Para la implementación del programa será necesario evaluar el empleo de diferentes tecnologías de voz sobre \emph{IP} (\emph{VoIP}) tales como \emph{H323}, \emph{SIP}, etc. Los principales recursos provienen de Internet: {\it papers}, artículos, foros, listas de correo electrónico, manuales de programación, ... También resultan imprescindibles las bibliotecas de la \emph{UDC}\footnote{Universidade da Coruña}, en especial, la biblioteca de la Facultad de Informática. \\
+
+En cuanto a los recursos software, cabe destacar los siguientes:
+
+\begin{itemize}
+	\item Distribución \emph{Debian GNU/Linux} en su versión ``testing'' (Junio de 2003), conocida como ``\emph{Sarge}''.
+	\item Herramintas genéricas de programación, normalemente incluídas en las distribuciones de Linux. Algunas de las más usuales son:
+	\begin{description}
+	   \item [Compiladores GNU]: {\it \textbf{gcc}}, {\it \textbf{gpc}}, {\it \textbf{g++}}, etc. En función del lenguaje de programación elegido.
+       \item [Herramientas de depurado]: {\it \textbf{gdb}}, es el depurador clásico de entornos \emph{Unix}; útil para corregir todos los fallos de accesos no permitidos a memoria y excepciones de punto flotante. {\it \textbf{Electric-fence}} es una biblioteca que substituye la función \emph{malloc} de la librería estándar, encargada de realizar las reservas de memoria, por una versión propia que incluye bandas de memoria no válidas entre cada par de bloques de memoria reservada, lo que permite detectar más fácilmente desbordamientos de \emph{buffer}. {\it \textbf{Memprof}}, herramienta capaz de detectar fugas de memoria, es decir, bloques de memoria reservados dinámicamente y ya no puede ser accedido, lo que hace imposible su liberación.
+       \item [Herramientas de control de tráfico de red]: {\it \textbf{tcpdump}} y {\it \textbf{ethereal}}, permiten capturar parte del tráfico que pasa por una interfaz de red aplicando filtros que eliminen los paquetes no deseados para realizar un análisis posterior. Permiten corregir fallos en la implementación de los protocolos.
+	\end{description}
+	\item Páginas del manual, documentan las funciones, librerías y llamadas del sistema.
+\end{itemize}
+
+En general todos los recursos software empleados se caracterizarán por ser ``open source'', es decir estar bajo la licencia {\it GPL}. Normalmente todos estos recursos ya vienen integrados en las distribuciones de \emph{Linux}; posteriormente se indicará más detalladamente las herramientas empleadas.
+
+\subsection{Sistema de Control}
+
+El sistema de control de este proyecto está basado en un calendario de actuación, es decir, simplemente se controla el tiempo invertido en cada una de las fases o hitos. El tiempo máximo de realización es de 9 meses, con fecha limite de finalización el 4 de Julio de 2003. La fecha de la propuesta de este proyecto fue a finales de Mayo de 2002, si bien, no fue iniciado hasta Septiembre de 2002. Los hitos que comprende son:
+
+\begin{enumerate}
+	\item \textbf{Documentación y viabilidad}: consiste en acaparar información de proyectos similiares, se buscan posibles tecnologías para el desarrollo del proyecto, etc. La fase acaba con un análisis de viabilidad y, si éste es positivo, se elabora un \emph{Plan de proyecto}. En el caso de este proyecto, al ser de \emph{tipo B} -es decir, propuesto por el alumno- esta fase se elaboró antes de la propuesta, ya que el alumno no va a proponer un proyecto inviable, por esa razón el tiempo invertido en esta fase no entra dentro del tiempo máximo de realización, pero, se estima en 4-5 semanas.
+	\item \textbf{Análisis}: tras la \emph{Documentación}, se procede al análisis de toda la información, se evalúa el uso de distintas tecnologías, se eligen las más adecuadas y se trazan las líneas maestras del proyecto. Tiempo estimado:  4-5 semanas.
+	\item \textbf{Diseño, implementación y pruebas}: durante el \emph{Diseño} se establece la arquitectura del software, es decir, la definición de los subsistemas y subobjetivos. En conjunto, todos los subsitemas deben cumplir los requerimientos. El tiempo máximo de realización es de 1 mes. La \emph{Implementación} del software, se basa en el \emph{Diseño}: se implementa cada subsistema, se comprueba que cumple con los requisitos y se elaboran pruebas específicas. Esta fase está estrechamente relacionada con la anterior, de forma que el diseño original puede sufrir modificaciones. 		   
+	\item \textbf{Memoria}, es el documento final que analiza todas las fases del desarrollo del proyecto. Tiempo disponible para esta fase, 4 semanas.
+\end{enumerate}
+
+Este proyecto sigue un ciclo lineal, excepto en las fases de diseño, implementación y pruebas, el que el ciclo es evolutivo. Dicho de otro modo, las fases lineales son \emph{Documentación} y \emph{Análisis}, esto significa que ninguna de estas fases puede comenzar hasta que no haya terminado la anterior. Al final de cada una de estas dos fases se elabora un plan que define la actuación en fases sucesivas. El ciclo evolutivo engloba el \emph{Diseño, implementación y pruebas}, ya que la etapa de diseño puede sufrir modificaciones en función de etapas sucesivas, y también, debido a las posibles ampliaciones del proyecto.
+
+\subsection{Elementos de riesgo}
+
+El principal riesgo del proyecto es el no cumplimiento de los hitos anteriores en el tiempo indicado y considerando que los plazos de entrega son fijos. Otros posibles riesgos proceden de la utilización de librerías externas, que pueden presentar fallos de programación (``bugs'') . Por estas circunstancias, los plazos de las distintas fases por las que atraviesa el proyecto, pueden acumular un retraso máximo total de 1 mes.
+
+\subsection{Beneficios}
+
+El objetivo de este proyecto no es conseguir beneficios económicos, simplemente se busca finalizar un ingeniería técnica, por otro lado, este proyecto quedará liberado bajo la \emph{GPL}, por lo que no tiene sentido plantearse beneficios económicos. \\
+
+Sin embargo, las espectativas del este proyecto son altas. Existen cientos de previsiones que auguran crecimientos exponenciales al número de minutos hablados a través de VoIP, una explosión similar a la del uso del correo electrónico a mediados de la década de los noventa. La siguiente gráfica (figura \ref{fig:espectativas_voip}) resume un estudio de Philips realizado en el año 2000, en la que se representa el porcentaje del total de tiempo de conversación que se realizará usando VoIP.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=12cm, height=10cm] {espectativas_voip.eps}
+\caption{Espectativas de para el crecimiento de VoIP.}
+\label{fig:espectativas_voip}
+\end{figure}
+
+Sin embargo, queda todavía por clarificar en este mercado el papel de las grandes operadoras de telefonía ``tradicional'': la transmisión de voz sobre redes \emph{IP} supone una seria amenaza para su modelo de negocio, y no hay que olvidar que generalmente son ellas las que proporcionan la conectividad a Internet. Parece por lo tanto poco factible que no usen su posición de fuerza para impedir el uso de estos servicios.
+
+\subsection{Conclusiones}
+
+La viabilidad y el análisis de riesgo están relacionados de muchas maneras. Si el riesgo del proyecto es alto la viabilidad de producir software de calidad se reduce. Las conclusiones extraídas se agrupan en tres partes diferenciadas:
+
+\begin{description}
+	\item[Viabilidad económica.] En el caso de este proyecto no es necesario un estudio de viabilidad económica ya que los beneficios ni la justificación económica no existe. Se trata de un proyecto hecho con software libre y para ser ``open source''.
+	\item[Viabilidad técnica.] La viabilidad tecnológica es frecuentemente el área más difícil de valorar en esta etapa del proceso. Es esencial que el proceso de análisis y definición se realice en paralelo con una valoración de la viabilidad técnica. De todas formas, en este caso la viabilidad técnica es positiva, puesto que el riesgo técnico es bajo, como lo demuestra la existencia de proyectos similares, que más adelante serán comentados en la seccion de \emph{Antecedentes}.
+	\item[Viabilidad legal.] No se esperan problemas legales, aunque la existencia de patentes de software en algunos países, junto con las restricciones a la implementación de determinados algoritmos de cifrado en otros, puede limitar el uso del software. Los problemas relacionados con sistemas cifrados pueden evitarse haciendo varias versiones del software y/o con compilación condicional.
+\end{description}
+
+\section{Antecedentes}
+
+En esta sección se explicarán las principales soluciones que se han dado al problema de la telefonía sobre \emph{IP} en general. Luego se comparará el proyecto con otros de propósito similar que existen en este momento.
+
+\subsection{Estado del arte}
+
+Debido a la filosofía de Linux, y en general de todo el software libre, tardaron en aparecer aplicaciones que usaran técnicas \emph{VoIP} para transmitir audio. La filosofía ``open source'' choca frontalmente con las patentes de software y los estándares cerrados. Hasta antes del 2000, sólo existía un proyecto de \emph{VoIP} que funcionaba en Linux con unas características aceptables, se trataba de \textbf{Speak Freely}. Esta situación estaba provocada porque sólo había un estándar disponible, el \emph{H.323} de la \emph{ITU}, y para acceder a la descripción del \emph{H.323} es necesario abonar una cantidad de dinero a la \emph{ITU-T}. Otros inconvenientes de \emph{H.323} son: complejidad -está formado por otros protocolos-; es prácticamente cerrado y algunos códecs de compresión de voz que usa son propietarios. A finales del 2000, el grupo \emph{MMUSIC} del \emph{IETF}, estandarizó un nuevo protocolo, el \emph{SIP} (Session Initiation Protocol). Este protocolo, a diferencia del anterior es mucho más ligero; su estándar es abierto -está disponible en Internet- y todavía se encuentra en estado de desarrollo y revisión. \emph{SIP} Es un protocolo muy simple y fácil de implementar y a diferencia de \emph{H.323}, que define todo el proceso de comunicación de audio, \emph{SIP}, sólo define como se debe iniciar la sesión; la transmisión de audio es independiente de \emph{SIP}. \\
+
+A partir de la publicación de \emph{SIP} (primavera 2001) empezaron a surgir muchos proyectos de \emph{VoIp} para Linux, FreeBsd, etc. que apostaron decididamente por \emph{SIP} frente a \emph{H.323}, esa es la razón por la que (casi) todos los proyectos ``open source'' emplean SIP junto con RTP. \\
+
+RTP es el otro protocolo en liza. Es un protocolo que se emplea para transportar el audio comprimido a través de una red (\emph{IP}), pero, para conocer las característas -formato de compresión, puertos de recepción y envío, etc.- de esa transmisión es nesario \emph{SIP} ó \emph{H.323}. Por esta razón, antes del año 2000, era muy complicado usar \textbf{Speak Freely}, ya que no usaba ninguno de estos dos protocolos. Para iniciar una conversación con \textbf{Speak Freely}, ambos usuarios debían conocer y configurar los parámetros de RTP y del audio comprimido. \\
+
+En el capítulo \ref{chp:analisis_tecnologico} se detallará una introducción \emph{H.323}, \emph{SIP} y \emph{RTP} y se analizarán todas sus características.
+
+\subsection{Proyectos similares}
+
+Los más importantes se detallan a continuación. Las características de cada uno de ellos están analizadas a fecha de Junio de 2003.
+
+\paragraph{Linphone,}creación de Simon Morlat, tiene licencia \emph{GPL} y permite realizar de manera fácil y eficiente llamadas de voz sobre \emph{IP} desde el entorno de \emph{GNOME} a través de Internet o redes locales entre estaciones GNU/Linux y hacia otros soft-phones compatibles con SIP.
+Estas son las características de \textbf{linphone}:
+	\begin{itemize}
+		\item Desarrollado para linux -aunque no se descarta el funcionamiento en otras plataformas \emph{Unix}- y usando el entorno \emph{Gnome}, pero puede ejecutarse en \emph{KDE}, además, a partir de la version 0.9.0, está disponible una versión para consola llamada {\it \textbf{linphonec}}.
+		\item Interfaz gráfica fácil de usar, como un teléfono celular, con sólo dos botones, ya que incorpora una agenda en la que guardar los contactos.
+		\item Incluye una gran variedad de codecs compresores de audio: ADPCM. GSM, Speex, etc. Estos codecs están integrados en el código del programa.
+		\item Utiliza el protocolo \emph{SIP}. \emph{SIP} es un Protocolo de Inicio de Sesion (Session Initiation Protocol) que está estandarizado por la \emph{IETF}\footnote{Internet Engineering Task Force, define los estándares de Internet (http://www.ietf.org)}.
+		\item Es software libre, liberado bajo los términos de la \emph{GPL}.
+	\end{itemize}
+
+	El software está integramente programado en C, con técnicas de OO (Orientación a Objetos). Tiene una librería independiente llamada \emph{oRTP} (Open RTP) que implementa el protocolo RTP, desarrollada usando POO y paralelamente al programa \textbf{linphone}. Sin embargo todavía no soporta cifrado de RTP ni el protocolo RTCP. La página web del proyecto es {\it http:www.linphone.org}. \\
+
+\paragraph{Speak Freely.}Tal vez sea uno de los primeros programas creados para este menester -iniciado en 1991 por John Walker, fundador de \emph{Autodesk}- es, por ello, uno de los más populares. Existen versiones para sistemas \emph{Unix} -tanto \emph{System V} como \emph{BSD}- y Windows. Las características más destacables de \textbf{Speak Freely} son:
+	\begin{itemize}
+		\item Multiplataforma, existen versiones tanto para sistemas \emph{Unix} como \emph{Windows}.
+		\item Interoperabilidad con ICQ, un servicio de mensajería instantánea.
+		\item Modo de conferencia, que permite charlar con varias personas a la vez, sin necesidad de estar en redes \emph{multicasting}.
+		\item Permite grabar mensajes de voz que informen a la persona llamante de que no está disponible.
+		\item Soporta cifrado de las sesiones. Implementa varios algoritmos de cifrado: DES, IDEA, PGP, Blowfish, etc.
+		\item Aparte de \emph{RTP}, implementa el protocolo \emph{VAT} (Visual Audio Tool), un protocolo muy simple de streaming de audio en tiempo real creado en \emph{Lawrence Berkeley Laboratory} (http//:www.lbl.org). Este protocolo no está estandarizado por ninguna organización.
+
+		\item Soporta estos codecs compresores de audio: DVI4, GSM, L16, LPC, PCMA y PCMU. Están integrados dentro del programa.
+		\item Es software libre, liberado bajo los términos de la \emph{GPL}.
+	\end{itemize}
+
+Las principales características de este programa son ser multiplataforma -la versión 6.0 puede ser ejecutada en plataformas de 16 bits como \emph{OS/2 Warp} y tiene total interoperabilidad con las restantes, anteriores y posteriores-  y la posibilidad de tener varias sesiones con distintos usuarios (modo de conferencia). La versión actual (7.0) está programada en \emph{C}, si bien, los desarrolladores planear reescribir el código en \emph{C++} para la version 8.0 y futuras. También existen versiones sin algoritmos criptográficos, por restricciones legales en algunos países. Más información en {\it http://www.speakfreely.org}. \\
+	
+\paragraph{RAT - Robust Audio Tool.}Como su propio nombre indica es, probablemente el programa más robusto para conferencia de audio.  Las características más importantes son:
+\begin{itemize}
+		\item Multiplataforma, FreeBSD, HP-UX, IRIX, Linux, NetBSD, Solaris, SunOS y Windows 95/NT.
+		\item Incorpora técnicas de control de detección de voz, detección de ruido, etc.
+		\item Multiconferencia, que permite charlar con un grupo de personas, pero necesita redes \emph{multicasting}.
+		\item Completamente compatible con el estándar RTP/RTCP, puede incluso enviar audio redundante para contrarestar pérdidas de paquetes.
+		\item Soporta cifrado de sesiones RTP/RTCP con DES.
+		\item Soporta estos codecs compresores de audio: GSM, ADPCM (G.726), G.711 y LPC. Están integrados dentro del programa.
+		\item Es software libre, liberado bajo los términos de la \emph{GPL}.
+\end{itemize}
+
+Este programa se diferencia de los anteriores en que soporta el protocolo RTP/RTCP íntegramente. También tiene varios sistemas de reparación de audio, lo que permite que aunque se pierdan paquetes de audio el usuario no note esas pérdidas. Las estrategias de reparación de audio son:
+\begin{description}
+		\item[Envio redundante de audio.] Cada vez que se envia un paquete, se aprobecha para enviar los $n$ anteriores, conjuntamente. De esta forma, si se pierde algún paquete, sólo es necesario esperar al siguiente, el cual contendrá el audio para el instante actual y para $n$ instantes anteriores. El problema se produce cuando se pierden $n$ paquetes o más, no existen posibilidades de reparación. El inconveniente de este sistema es que multiplica por $n$ el ancho de banda requerido y, en el peor de los casos, se puede producir un retardo de varios segundos en el audio recibido.
+		\item[Entrelazado de audio] Una vez formado un paquete, se divide en $n$ trozos, forma un nuevo paquete compuesto por $n$ trozos ordenados secuencialmente de los paquetes originales, y se envia el paquete compuesto. Para recomponer un paquete, es necesario esperar la llegada de $n$. La ventaja de este sistema es que no aumenta el ancho de banda consumido, pero la conversación sufre un retardo constante de varios segundos, debido a la necesidad de esperar a $n$ paquetes. Si se pierde un paquete el usuario no notará nada, ya que afectará mínimamente a los $n$ paquetes sucesivos.
+\end{description}
+Esta aplicación también puede hacer streaming de audio. Más información en {\it http://www-mice.cs.ucl.ac.uk/multimedia/software/rat}.
+
+

@@ -1,0 +1,59 @@
+This is BibTeX, Version 0.99c (Web2C 7.4.5)
+The top-level auxiliary file: memoria.aux
+A level-1 auxiliary file: portada.aux
+A level-1 auxiliary file: dedicatoria.aux
+A level-1 auxiliary file: agradecimientos.aux
+A level-1 auxiliary file: resumen.aux
+A level-1 auxiliary file: introduccion.aux
+A level-1 auxiliary file: plan_proyecto.aux
+A level-1 auxiliary file: analisis_tecnologico.aux
+A level-1 auxiliary file: analisis_requisitos.aux
+A level-1 auxiliary file: diseno.aux
+A level-1 auxiliary file: implementacion.aux
+A level-1 auxiliary file: pruebas.aux
+A level-1 auxiliary file: conclusiones.aux
+The style file: plain.bst
+Database file #1: memoria.bib
+Warning--empty journal in Tennenhouse
+You've used 15 entries,
+            2118 wiz_defined-function locations,
+            586 strings with 5633 characters,
+and the built_in function-call counts, 3446 in all, are:
+= -- 320
+> -- 144
+< -- 0
++ -- 59
+- -- 44
+* -- 146
+:= -- 609
+add.period$ -- 46
+call.type$ -- 15
+change.case$ -- 63
+chr.to.int$ -- 0
+cite$ -- 16
+duplicate$ -- 141
+empty$ -- 321
+format.name$ -- 44
+if$ -- 732
+int.to.chr$ -- 0
+int.to.str$ -- 15
+missing$ -- 14
+newline$ -- 78
+num.names$ -- 30
+pop$ -- 116
+preamble$ -- 1
+purify$ -- 52
+quote$ -- 0
+skip$ -- 100
+stack$ -- 0
+substring$ -- 75
+swap$ -- 14
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 48
+warning$ -- 1
+while$ -- 30
+width$ -- 17
+write$ -- 155
+(There was 1 warning)

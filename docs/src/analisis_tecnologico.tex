@@ -1,0 +1,503 @@
+\capitulo{Análisis tecnológico}
+\label{chp:analisis_tecnologico}
+%\newpage
+%\thispagestyle{empty}
+\minitoc
+\newpage
+
+Este capítulo sirve de pequeña introducción técnica de las distintas tecnologías empleadas en el desarrollo de este proyecto.
+
+\section{Tratamiento del sonido}
+
+Esta sección pretende introducir al lector una serie de conocimientos básicos acerca de la naturaleza del sonido. En un principio se presentan una  serie de conceptos físicos claves para enterder su naturaleza, propagación, percepción por el oído humano. Más adelante se aborda el procesado digital del sonido y su tratamiento desde el punto de vista del procesamiento de señales, esto es, como el sonido es captado por un dispositivo digital como un muestreador DSP para ser tratado y procesado. La terminolgía empleada en esta sección es clave para enterder capítulos posteriores.
+
+\subsection{Acústica}
+
+Se entiende por acústica la parte de la física que trata del sonido y de todo lo que a él se refiere.
+
+\subsubsection{Sonido}
+
+Desde el punto de vista físico el sonido es una vibración mecánica en un gas, líquido o medio sólido. La propiedad elástica del medio permite al sonido propagarse en forma de onda desde la fuente, algo parecido a las ondas que se generan en un charco al arrojar una piedra. Cada vez que un objeto vibra, una pequeña porción de energía se pierde en forma de sonido, o expresado de otro modo, la vibración provoca un transvase de energía al medio -normalmente el aire- que da lugar al sonido. \\
+
+El sonido se propaga en el aire en forma de variación de presión. Un altavoz, por ejemplo, transmite las variaciones de presión al aire y sólo esta variación se mueve, no el aire; en la comparación del charco mencionada antes, las ondas se desplazan por el agua, mientras que ésta permanece en el mismo lugar, pero oscilando verticalmente. En el aire las ondas de sonido se propagan a 340 metros por segundo en condiciones normales. En la figura ~\ref{fig:vibracion_fluido} se muestra la propagación de la onda en un medio que podría ser el aire.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=10cm, height=5cm] {vibracion_fluido.eps}
+\caption{Transmisión de la vibración en un fluido}
+\label{fig:vibracion_fluido}
+\end{figure}
+
+El parámetro $Z$ es la amplitud de onda, es le valor máximo que puede alcanzar. El parámetro $T_{0}$ es el período, se expresa en segundos; $T_{0}$ es igual al inverso de la frecuencia $F$. La frecuencia se expresa en \emph{Hercios} ($Hz$). \\
+
+A continuación se va a definir un modelo matemático que describe la naturaleza del sonido. Cualquier sonido genérico se puede formar a partir de una suma de movimientos armónicos simples, por ello se van a definir las características del movimiento armónico. Si se representa la figura ~\ref{fig:vibracion_fluido} como una onda se obtiene la figura ~\ref{fig:forma_onda}
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=10cm, height=5cm]{forma_onda.eps}
+\caption{Movimiento armónico simple}
+\label{fig:forma_onda}
+\end{figure}
+
+Como toda onda se puede considerar como superposición de ondas sinusoidales de frecuencia, amplitud y fase correspondientes (\emph{Teorema de Fourier}), un sonido complejo se puede descomponer como una suma de armónicos simples de distinta frecuencia. \\
+
+Las ondas sonoras capaces de ser detectadas por el oído humano van desde 20 Hz (umbral inferior) a 20000 Hz (umbral superior). Por debajo de 20 Hz están los infrasonidos (mareas, ondas sísmicas) y por encima de 20000 Hz, los ultrasonidos (como el sonar, de baja energía, y las vibraciones de las redes cristalinas (cuarzo), de alta energía. \\
+
+El ruido es un sonido audible no armonioso. Procede de ondas no periódicas. Una nota musical es un sonido agradable; procede de ondas periódicas. El sonido o nota fundamental es la víbración cuya frecuencia $F_{0}$, es la más baja que se puede obtener en la flauta aguda (caramillo). Un armónico es una nota cuya frecuencia es un múltiplo entero de $F_{0}$. \\
+
+Las notas o sonidos musicales se caracterizan por la intensidad, el tono y el timbre. La intensidad de un sonido depende de la mayor o menor amplitud de la onda, ya que la energía de la misma es función del cuadrado de la amplitud. La audición está unida a la intensidad de la onda sonora. Para cada frecuencia hay una intensidad mínima (umbral de audición) por debajo de la cual no se oye; y una intensidad máxima que produce sensación de dolor (umbral doloroso). El nivel de intensidad sonoro, se mide en decibelios ($dB$) que se explicaran más adelante. El tono de un sonido depende de su frecuencia. Los tonos agudos tienen mayor frecuencia que los graves. De la relación: $f = v/l$ se deduce que a mayor longitud de onda, menor frecuencia, y viceversa. El timbre depende de los armónicos que acompañan a los sonidos; como éstos varían con los instrumentos, por el timbre se distingue una nota dada por diferentes instrumentos. \\
+
+\subsubsection{Amplitud}
+
+La medida de la amplitud de una onda es importante porque informa de la fuerza, o cantidad de energía, de una onda, que se traduce en la intensidad de lo que oímos, su unidad de medida es el decibelio. Un decibelio, abreviado como dB, es una unidad de medida de la fuerza de la señal y es útil en la comparación de la intensidad de dos sonidos. La sensibilidad del oído humano es extraordinaria, con un rango dinámico o variación en intensidad muy amplio. La mayoría de los oídos humanos pueden capturar el sonido del murmullo de una hoja y, después de haberse sometido a ruidos explosivos como los de un avión, siguen funcionando. Lo que es sorprendente es que la fuerza de la explosión en un avión es al menos 10 millones de veces mayor que el murmullo que una hoja produce con el viento. \\
+
+Según la {\it ley de Weber-Fechner}, el efecto sobre el oído de un cambio de intensidad depende de la intensidad que precede al cambio, por ello el oído necesita un porcentaje elevado de variaciones en la fuerza de un sonido para detectar un cambio en la intensidad percibida. Una forma simple de comprender esto es comenzar con una nota de determinada intensidad, por ejemplo 10 unidades, incrementarla luego a 100 y después a 1000 unidades. Estos dos cambios los interpretaría el oído como idénticos en potencia, puesto que la proporción de $100/10$ es igual a $1000/100$. Otro modo de expresar esto es escribir los valores de las intensidades en potencias de diez: $10^{1}$, $10^{2}$, $10^{3}$ y se aprecia que los cambios iguales en potencia vienen dados por cambios iguales al logaritmo de la intensidad. El oído tiene una respuesta logarítmica y en mediciones de acústica se emplea una unidad llamada {\it belio}, abreviado {\it B} . Si la intensidad inicial $I_{0}$ se incrementa hasta un nuevo valor $I_{1}$ se tiene:
+
+\[
+belios = log_{10} \left( \frac{ I_{1}} {I_{0} } \right)
+\]
+\\
+
+En la práctica, el belio es demasiado grande y por ello se emplea el {\it decibelio} ({\it dB}). La relación en decibelios será entonces:
+
+\begin{equation}
+dB = 10 \cdot log_{10} \left( \frac{ I_{1}} {I_{0} } \right)  \label{eq:ecuacion1_decibelios}
+\end{equation}
+
+donde $I_{0}$, es la intensidad inferior de audición que se toma como punto de referencia y en el aire vale: $I =10^{-12} W_{m} ^{-2}$. Así un sonido cuya intensidad sea 1000 veces superior a $I_{0}$ tiene de nivel de:  $10 log (10^{3} 10^{-22}/10^{-12}) = 30  dB$. \\
+
+Los logaritmos representan un recurso muy útil de cálculo, y a esto se debe que el decibelio se use universalmente en ingeniería electrónica para comparar dos potencias eléctricas. Así, por ejemplo, si la potencia de entrada de un amplificador es $W_{0}$ y la de salida $W_{1}$, la amplificación en decibelios será:
+
+\[
+A = 10 \cdot log_{10} \left( \frac{W_{1}}{W_{0}} \right)
+\]
+
+En acústica se suele tratar con mayor frecuencia con presiones que con intensidades, y con dos presiones, la relación en decibelios es: 
+
+\begin{equation}
+dB = 20 \cdot log_{10} \left( \frac{P_{1}}{P_{0}} \right)  \label{eq:ecuacion_decibelios}
+\end{equation}
+
+donde $P_{0}$ es la presión inicial y $P_{1}$ la presión con la que se quiere relacionar. Esta relación se obtiene a partir de la fórmula ~\ref{eq:ecuacion1_decibelios} y considerando que $intensidad = f (presion^{2})$ :
+\begin{eqnarray}
+dB & = & 10 \cdot log_{10} \left( \frac{ P_{1}^{2} } { P_{0}^{2} } \right)  \nonumber \\
+& = & 20 \cdot log_{10} \left( \frac{ P_{1} } { P_{0} } \right)
+\end{eqnarray}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=9cm, height=11cm] {db_sources.eps}
+\caption{dB de varias fuentes de sonido}
+\label{fig:dB_sources}
+\end{figure}
+
+En el aspecto práctico de la amplitud, un incremento de sólo 3 dB duplica la intensidad de un sonido. Por ejemplo, un sonido con 86 dB tiene, el doble de fuerza que un sonido con 83 dB y cuatro veces más que un sonido con 80 dB. Desde la perspectiva de nuestra percepción de la intensidad, un incremento de 3 dB, que da lugar a que se duplique la fuerza, provoca que el sonido se perciba sólo ligeramente más alto. Es necesario un aumento en 10 dB para que nuestros oídos perciban un sonido con el doble de intensidad.  La figura ~\ref{fig:dB_sources} muestra el nivel en $dB$ de varias fuentes de sonido usuales.
+
+\subsubsection{Rango dinámico}
+
+El rango dinámico es el variación de frecuencias que puede alcanzar o recorre una señal de audio. Es una característica que influye notablemente en la calidad de los sonidos grabados. El rango dinámico de un sonido reproducido nunca es comparable al real. La razón principal es que un sistema -analógico o digital- no puede duplicar el rango dinámico completo de, por ejemplo, una orquesta o de un concierto de rock. Una orquesta puede alcanzar los 110 $dB$ en su climax y en el punto más suave bajar hasta los 30 $dB$, dando lugar a un rango dinámico de 80 $dB$. Este rango es superior al rango dinámico de un sistema estéreo típico y, de hecho, superior a la capacidad de grabación de medios tales como un disco de vinilo y una cinta de audio. El programa, por ejemplo, tiene un rango dinamico (interno) de 96 $dB$, ya que trabaja con audio en formato 16 bits y partiendo de la ecuación de cálculo de $dB$  ~\ref{eq:ecuacion_decibelios}, se  obtiene :
+\[
+Rango \: dinamico\: =  20 \cdot log_{10} \left( R_{\Delta} \right) = 20 log_{10} ( 2^{16} ) = 96\, dB
+\]
+En la siguiente lista se muestra rango dinámico varios sistemas de almacenamiento de audio:
+\begin{itemize}
+\item Disco de vinilo: 65 $dB$
+\item Cinta magnetofónica: 55 $dB$
+\item Cd-Audio (16 bits): 96 $dB$
+\item Muestreo 8 bits: 48 $dB$
+\end{itemize} 
+
+\subsubsection{Ancho de banda}
+
+Existe una medida estándar para definir el ancho de banda: el rango de frecuencias sobre el que la amplitud de la señal no difiere del promedio en más de 3 dB, es decir la diferencia de las frecuencias en la que se produce una caída de 3 dB, ya es el punto donde su amplitud cayó a la mitad, y éste es el mínimo cambio en la fuerza de la señal que puede ser percibido como un cambio real en la intensidad por la mayoría de los oídos. \\
+
+A menudo el ancho de banda se simboliza mediante un único número cuando la frecuencia baja está bastante próxima a cero. Por ejemplo, el ancho de banda de una voz femenina se sitúa en torno a los 9 kHz, aunque realmente puede estar en el rango que va desde los 200 Hz hasta los 9 kHz. \\
+
+Es importante tener en cuenta que el ancho de banda de un sistema de sonido depende del enlace más débil del canal, que normalmente no es la tarjeta de sonido. La calidad del sonido producido por el PC refleja el esfuerzo de muchos componentes, y la salida no será mejor que la interpretación del miembro menos capacitado de un grupo. En el caso del sistema de sonido del ordenador, una señal debe pasar por muchas fases de transformación de audio y por diferentes dispositivos. Por ejemplo, el sonido grabado mediante un micrófono y que luego es reproducido. La tarjeta de sonido transforma el sonido recogido del micrófono en una señal eléctrica que, posteriormente, se transforma en audio digital y se almacena en disco. El audio digital del disco es transformado de nuevo en una señal eléctrica y reproducido a través de los cascos o de los altavoces. El ancho de banda efectivo del sistema de sonido está limitado por el dispositivo con el ancho de banda más estrecho de todos los dispositivos que procesan el sonido. El enlace más débil en grabación suele ser el micrófono, que tiene probablemente un ancho de banda aproximadamente de 12 kHz. 
+
+\subsection{Psicoacústica}
+
+El oído humano percibe un rango de frecuencias entre 20 Hz. y 20 Khz. En primer lugar, la sensibilidad es mayor en la zona alrededor de los 2-4 Khz., de forma que el sonido resulta más difícilmente audible cuanto más cercano a los extremos de la escala. En segundo lugar está el enmascaramiento, cuyas propiedades utilizan exhaustivamente los algoritmos más interesantes: cuando la componente a cierta frecuencia de una señal tiene una energía elevada, el oído no puede percibir componentes de menor energía en frecuencias cercanas, tanto inferiores como superiores. A una cierta distancia de la frecuencia enmascaradora, el efecto se reduce tanto que resulta despreciable; el rango de frecuencias en las que se produce el fenómeno se denomina banda crítica. Las componentes que pertenecen a la misma banda crítica se influyen mutuamente y no afectan, ni se ven afectadas, por las que aparecen fuera de ella. La amplitud de la banda crítica depende de la frecuencia y viene dada por unos determinados datos que demuestran que es mayor con la frecuencia. Hay que señalar que estos datos se obtienen por experimentos psicoacústicos, que se realizan con expertos entrenados en percepción sonora, dando origen con sus impresiones a los modelos psicoacústicos. \\
+
+Lo descrito es el llamado enmascaramiento simultáneo o en frecuencia. Existe, asimismo, el denominado enmascaramiento asimultáneo o en el tiempo, así como otros fenómenos de la audición que no resultan relevantes en este punto. La idea es que ciertas componentes en frecuencia de la señal admiten un mayor ruido del que generalmente consideraríamos tolerable y, por tanto, requieren menos bits para ser codificadas si se dota al codificador de los algoritmos adecuados para resolver máscaras. \\
+
+Otra consideración importante en las comunicaciones de audio es la calidad de la transmisión.
+Si la calidad es muy buena y se usan técnicas de transmisión discontinúa o DT (Discontinous Transmission) apoyadas por VAD (Voice Activity Detection o detección de voz) provoca que los interlocutores tengan a veces la sensación de que se ha perdido la comunicación y aparecan expresiones del tipo ``sigues ahí'', ``me escuchas'', etc. Esto se soluciona generando lo que se conoce como \emph{ruido de comfort} mediante el sistema CNG (Comfort Noise Generation). El ruido de comfort se genera en el propio terminal, es un engaño del sistema, y consiste en generar un ligero ruido gausiano de fondo, pero sin entorpecer la comunicación.
+
+\subsection{Modulación de audio}
+
+La tecnología digital es más avanzada y ofrece mayores posibilidades, menor sensibilidad al ruido en la transmisión y capacidad de incluir códigos de protección frente a errores, así como cifrado. Con los mecanismos de decodificación adecuados, además, se pueden tratar simultáneamente señales de diferentes tipos transmitidas por un mismo canal. La desventaja principal de la señal digital es que requiere un ancho de banda mucho mayor que el de la señal analógica, de ahí que se realice un estudio en lo referente a la compresión de datos. \\
+
+El proceso de digitalización se compone de dos fases: muestreo y cuantización. En el muestreo se divide el eje del tiempo en segmentos discretos: la frecuencia de muestreo será la inversa del tiempo que medie entre una medida y la siguiente. En estos momentos se realiza la cuantización, que, en su forma más sencilla, consiste simplemente en medir el valor de la señal en amplitud y guardarlo. El teorema de Nyquist garantiza que la frecuencia necesaria para muestrear una señal que tiene sus componentes más altas a una frecuencia dada $f$ es como mínimo $2f$. Por tanto, siendo el rango superior de la audición humana en torno a los 20 Khz, la frecuencia que garantiza un muestreo adecuado para cualquier sonido audible será de unos 40 Khz. Concretamente, para obtener sonido de alta calidad se utilizan frecuencias de 44'1 Khz (CD Audio). Otros valores típicos son submúltiplos de la primera, 22 y 11 Khz. Según la naturaleza de la aplicación, por supuesto, las frecuencias adecuadas pueden ser muy inferiores, de tal manera que el proceso de la voz acostumbra a realizarse a una frecuencia de entre 6 y 20 Khz. En lo referente a la cuantización, es evidente que cuantos más bits se utilicen para la división del eje de la amplitud, más ``fina'' será la partición y por tanto menor el error al atribuir una amplitud concreta al sonido en cada instante. Por ejemplo, 8 bits ofrecen 256 niveles de cuantización y 16, 65536. El margen dinámico de la audición humana es de unos 100 dB. La división del eje se puede realizar a intervalos iguales o según una determinada función de densidad, buscando más resolución en ciertos tramos si la señal que se trata tiene más componentes en cierta zona de intensidad. \\
+
+ \begin{figure}[hbt]
+\centering
+\includegraphics[width=\textwidth, height=9cm] {muestreo.eps}
+\caption{Conversión Analógico-Digital del sonido (ADC)}
+\label{fig:modulacion_audio}
+\end{figure}
+
+La modulación por impulsos codificados (PCM) es el método más común de codificar una voz analógica en un flujo digital. El proceso de PCM es el siguiente:
+\begin{enumerate}
+	\item Las formas de onda analógicas se pasan por un filtro de frecuencia de voz
+para filtrar cualquier cosa que sea mayor de 4000Hz. Siguiendo  el teorema de Nyquist, se necesita muestrear a 8000 muestras por segundo para alcanzar una transmisión de voz de buena calidad.
+	\item La señal analógica filtrada es luego muestreada a una velocidad de 8000 veces
+por segundo. 
+	\item Cuando se ha muestreado la forma de onda, ésta se convierte en una onda digital discreta. Esta muestra está representada por un código que indica la amplitud de la forma de onda en el instante en que se tomó la muestra. La forma de telefonía de PCM utiliza 8 bits para el código y un método de compresión logarítmico que asigna más bits para señales de amplitud más baja. \\
+
+Si se multiplican las palabras de 8 bits a 8000Hz, se obtienen 64000 bits por segundo (bps). La base para la infraestructura del teléfono es 64000 bps (64 kbps).
+\end{enumerate}
+
+Normalmente, se utilizan dos variaciones básicas de PCM de 64 kbps; la ley u, que es la estándar usada en EEUU, y la ley a, que es la estándar utilizada en Europa. Los dos métodos son similares en cuanto ambos utilizan la compresión logarítmica para pasar de 12 a 13 bits de calidad PCM lineal en palabras que tienen sólo 8 btis, pero se diferencian en detalles de compresión relativamente pequeños. El método de la ley u tiene una pequeña ventaja sobre el método de la ley a en términos de rendimiento de la relación señal-ruido de bajo nivel.
+
+\subsection{Compresión de audio}
+
+Para comprimir una señal de audio, se asigna a un rango de niveles un único valor de reconstrucción. Esto hace más fácil discernir entre niveles de amplitud, reduciendo el efecto del ruido que se pueda añadir en una transmisión o en un proceso de lectura. El precio que hay que pagar es una distorsión de la señal, ya que esta no recupera su amplitud original en todos los puntos, sino un valor próximo. Esta distorsión puede verse como ruido añadido, en una proporción que se puede controlar variando el número de niveles de cuantificación: cuantos más niveles, menos ruido. \\
+
+Si en una zona del espectro se introduce ruido sin que se oiga, se realiza una cuantificación menos fina (escalones de cuantificación más grandes, que se traduce en menos bits), mientras que en las zonas donde el ruido se hace audible, se asigna más bits. Es en este punto donde se diferencian unos codificadores de otros. El cálculo de la cantidad de ruido que se puede admitir es un dato basado en lo que se llama el "Modelo psicoacústico". Este modelo es completamente experimental, y se realiza promediando la respuesta de muchas personas frente a determinados estímulos. Un buen modelo permitirá estimar con precisión la cantidad de ruido admisible y la banda donde puede introducirse con pérdidas mínimas, mientras que las estimaciones de un mal modelo no permitirán comprimir tanto o con tanta calidad. No obstante, la elección de un modelo u otro puede venir determinada por diferentes factores, como por ejemplo, el coste computacional.
+
+El procedimiento básico es el siguiente:
+
+\begin{enumerate}
+	\item Crear ventanas con la señal: tomar muestras durante unos 10 ms (alrededor de 512 muestras). A este intervalo temporal se le denomina ventana de análisis.
+    \item Análisis espectral de la ventana: se divide la señal en subbandas, generalmente unas 32, que suelen distribuirse de manera uniforme en frecuencia. Hay que calcular un umbral de enmascaramiento para cada una de estas bandas.
+    \item Generalmente se usa una \emph{TF} (Transformada de Fourier) o mejor una \emph{FFT} (Transformada rápida de Fourier), pero pueden utilizarse otras transformaciones, como por ejemplo la \emph{DCT} (Transformada Discreta del Coseno). Al aplicar esta transformación, el espectro se divide en bandas de anchura creciente con la frecuencia, lo que simula el comportamiento del oído, que tiene más resolución espectral en baja frecuencia.
+    \item Cálculo de los umbrales de enmascaramiento: esta parte puede hacerse de dos formas. La más simple, y la que se usa para factores de compresión pequeños, es utilizar la energía de las subbandas para estimar los umbrales, que es computacionalmente poco costoso. Para elevar los factores de compresión, se necesita afinar más en la estimación, lo que se hace calculando una FFT de muchos puntos (más de 512) o calcular FFT (o MDCT) de cada una de las subbandas. La decisión de usar uno u otro método es un compromiso entre prestaciones y coste computacional. 
+    \item Cuantificación: según los umbrales de enmascaramiento y la velocidad binaria de salida se realiza la cuantificación de los coeficientes de cada banda con un número determinado de bits.
+\end{enumerate} 
+
+Y este es el proceso básico. Evidentemente una implementación real debe tener en cuenta muchos otros factores. También suele ser frecuente aplicar un algoritmo de compresión estándar a la salida o algún esquema de compactación eficiente de bits para reducir aún más la tasa binaria. 
+
+\subsection{Otras consideraciones}
+
+A continuación se tratan otras consideraciones a tener en cuenta con el tratamiento del audio digital.
+
+\subsubsection{Detección de voz. VAD}
+
+Existen muchas y muy complejas técnicas para detectar la voz. Aquí se va a mostrar la técnica mas básica de todas. Consiste, básicamente, en calcular la media ponderada de la señal cuando no hay voz, para más tarde comparar ese valor promedio con los obtenidos en las muestras actuales. Si superan ese valor se considerará que la señal es válida -hay voz- en caso contrario se ignorará la muestra. Hay dos formas para que se pueden usar para este menester:
+ 
+\begin{description}
+	\item [Cálculo de la magnitud.] La magnitud se define como la suma del valor absoluto de las muestras que se encuentran en una ventana; se divide por el número de muestras para normalizar los resultados:
+	\begin{equation}
+	M(i) = \frac{1}{T_{v}} \sum_{k=0}^{T_{v}-1} \mid m(k) \mid
+	\end{equation}
+siendo $M(i)$ la magnitud de la ventana $i$, $T_{v}$ el tamaño de la ventana y $m(k)$ la muestra de sonido capturada. 
+	\item [Cálculo de la energía.] Se define como la suma de las muestras al cuadrado; se divide por el número de muestras para normalizar los resultados.
+	\begin{equation}
+	M(i) = \frac{1}{T_{v}} \sum_{k=0}^{T_{v}-1}  m^{2}(k)
+	\end{equation}
+siendo $E(i)$ la energía de la ventana $i$.
+\end{description} 
+
+\subsubsection{Modificación del volumen en el audio digital}
+ 
+Para modificar el volumen, se multiplican todas las muestras por un determinado factor.
+si el factor es mayor que uno, se incrementa el volumen, si es menor que uno, se decrementa 
+y si es uno el volumen no varía. \\
+
+Hay que tener en cuenta que, si al multiplicar una muestra por un factor mayor que uno se produce desbordamiento se truncarán los dígitos superiores, pero, esa solución no es adecuada; lo correcto es dejar la muestra con el mayor valor  posible. Esto lo se debe implementar mediante codigo específico. Para el caso particular de pretender aumentar el volumen al máximo, sin que se produzca saturación, se debe buscar la muestra de mayor valor absoluto y calcular el factor con el que multiplicar para convertir esta  muestra en el mayor valor que permita el rango. Posteriormente hay que multiplicar todas las muestras por ese factor.
+                                                                       
+\subsubsection{Mezcla de sonidos digitales}
+
+Basta con sumar las muestras de forma ordenada. Sólo hay que tener en cuenta que no se
+produzca truncamiento (\emph{clipping}). Para ello, antes de realizar al suma, se multiplica cada sonido por un factor menor que la unidad. Con esta regla se evita la posibilidad de que se produzca un truncamiento, pero en general, el volumen del sonido final es muy bajo, se debe reajustar para que ronde el 90\% del rango permitido. \\
+
+El factor óptimo -menor que uno- con el que se deben multiplicar todas las muestras a 
+mezclar es el inverso del número de fuentes a mezclar, es decir $f = \frac{1}{N_{f}}$,
+donde $N_{f}$ es el número de fuentes.
+
+\section{Protocolo de Internet. IP}
+
+Hoy por hoy, el Protocolo de Internet -\emph{IP}, (Internet Protocol) es el protocolo más usado en las redes de comunicaciones telemáticas, por esta razón se ha elegido para el desarrollo del proyecto \software . A continuación se expone una breve introdución en el funcionamineto de \emph{IP}, resaltando aquellas carácterísticas que pueden afectar al rendimiento de ésta aplicación.
+
+\subsection{Introducción}
+
+En general una red de comunicaciones se compone de diferentes medios. Es necesario que se garantice la comunicación entre sí de todos los equipos conectados a la red. El nivel de red oculta los detalles del medio, ofreciendo al usuario la imagen de una única red, aunque dicha red esté formada por varias redes distintas en medios físicos diferentes. Así este nivel se encarga principalmente de la comunicación extremo a extremo y el encaminamiento. IP es un protocolo que se desenvuelve en el nivel de red, nivel 3 de \emph{OSI} (Open Systems Interconection), su función es hacer lo mejor que pueda la entrega de un datagrama al host destino. Las funciones de \emph{IP} son:
+
+\begin{itemize}
+	\item Provee una red virtual única independiente de los medios físicos y protocolos de enlace.
+	\item Cada equipo que se conecta debe tener al menos una dirección que lo identifica dentro de la red, por lo que provee de un direccionamiento lógico uniforme independiente de las redes físicas.
+	\item Aísla a la capa de transporte de la tecnología, topología, etc. de la red.
+	\item Se encarga del establecimiento de rutas.
+	\item Control de congestión dentro de la red.
+	\item Adaptación al tamaño de trama del nivel de enlace (\emph{MTU}).
+\end{itemize}
+
+ \begin{figure}[hbt]
+\centering
+\includegraphics[width=8cm, height=6cm] {cabecera_ip.eps}
+\caption{Cabecera de un paquete IP}
+\label{fig:ip_header}
+\end{figure}
+
+\emph{IP} es un protocolo que proporciona servicios no orientados a conexión y no es fiable. Es un protocolo bien intencionado, es decir, un paquete se pierde solamente cuando se dan circustancias excepcionales como un corte en la red. \emph{IP} es el principal protocolo de la capa de red. Este protocolo define la unidad básica de transferencia de datos entre el origen y el destino, atravesando toda la red. Además, el software IP es el encargado de elegir la ruta más adecuada por la que los datos serán enviados. En resumen, se trata de un sistema de entrega de datagramas que tiene las siguientes características:
+
+\begin{itemize}
+	\item Es no orientado a conexión, cada uno de los paquetes puede seguir rutas distintas entre el origen y el destino, puediendo llegar duplicados o desordenados.
+	\item Es no fiable, los paquetes pueden dañarse por errores en los bytes durante la transmisión por el medio, perderse o llegar retrasados por un culpa encaminador congestionado, etc.
+	\item Cada datagrama es tratado en la red de manera independiente de los demás.
+	\item El tamaño máximo del datagrama es de 65635 bytes, pero se adapta al nivel de enlace.
+\end{itemize}
+
+\emph{IP} es un protocolo adaptativo, es decir, en todo momento se realiza una comprobación de la mejor ruta a seguir para el siguiente salto comprobando la tabla de encaminamiento del nodo actual, las entradas de la tabla de encaminamiento pueden cambiar en cualquier momento dependiendo de las condiciones de la red. Por ejemplo si un enlace deja de funcionar se enviaran los datagramas por una ruta diferente, si es que existe. Un cambio en la topología de la red puede hacer que los datagramas se reencaminen automáticamente. El encaminamiento adaptativo es la base de la flexibilidad y la robustez de IP. También utiliza, técnicas de fragmentación y reensamblado junto con temporizadores que permiten encaminar los datagramas a través de encaminadores congestionados o pasar de redes con grandes prestaciones a redes pequeñas y de baja calidad de tráfico. Esto hace posible que un datagrama de IP viaje pasando por una gran variedad de tecnologías de comunicación que van desde las redes de telefonía básica hasta los enlaces dedicados por satélite o fibra óptica y viceversa. \\
+
+El funcionamiento de IP se basa en un identificador de 32 bits (dirección IP) de un sistema (interfaz). La dirección ip está vinculada a un punto de acceso al servicio, es decir, una dirección identifica de forma única a un punto de acceso remoto con el cual comunicar. Esto es lo que posibilita el encaminamiento, la dirección es única en el contexto en que está siendo utilizada -la red-, ya que identifica perfectamente al destino. Para explicar el tema de manera superficial, IP no necesita conocer la ruta completa que lo llevara a la red destino, sólo necesita descubrir cuál es el siguiente salto (gateway o puerta de enlace) y enviar allí el datagrama. \\
+
+Todas las funciones que aseguran la fiabilidad del envío y entrega de datos se ha concentrado en la superiores a \emph{IP} como se detallará posteriormente. Cada datagrama de IP tiene un tiempo de vida (TTL) que expira según se configure el temporizador por TCP, ésto provoca la retransmisión del datagrama por parte de TCP.
+
+\subsection{Rendimiento de \emph{IP}}
+
+El rendimiento del protocolo \emph{IP} depende de las siguientes características:
+
+\begin{enumerate}
+	\item \textbf{Ancho de banda de la transmisión.} Depende de la Certificación de la Red y de sus parámetros.
+	\item \textbf{Memoria de los buffer.} Depende del software, encaminadores, y otros equipos de LAN que procesan los datagramas IP.
+	\item \textbf{Capacidad de procesamiento de la CPU.} Características de los servidores.
+\end{enumerate}
+
+El rendimiento también se puede ver afectado por el parámetro Unidad Máxima de Transferencia, MTU (Maximum Transfer Unit). El MTU determina la longitud máxima, en bytes, que podrá tener un datagrama para ser transmitida por una red física. Obsérvese que este parámetro está determinado por la arquitectura de la red: para una red Ethernet el valor de MTU es de 1500 bytes. Dependiendo de la tecnología de la red los valores MTU pueden ir desde 128 hasta unos cuantos miles de bytes. Si el paquete IP, supera el MTU de la red física, este será fragmentado en varios paquetes, con la consiguiente perdida de tiempo y de ciclos de CPU. Estas consideraciones se deben tener en cuenta.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth, height=8cm] {mtu.eps}
+\caption{Rendimiento del protocolo IP}
+\label{fig:mtu_ip}
+\end{figure}
+
+Estos son los puntos críticos que afectan el rendimiento de una red \emph{IP}, no se conocen mecanismos de control. El diseño de un protocolo es una lucha constante contra entre ganancias y pérdidas de eficiencia.
+
+\subsection{Protocolo de Control de Transferencia. TCP}
+
+Proporciona un mecanismo fiable para la transferencia de flujos de información. Aunque está íntimamente relacionado con IP, TCP es un protocolo independiente de propósito general. Al ser un protocolo de alto nivel (4 en OSI) su función es que grandes volúmenes de información lleguen a su destino correctamente, pudiendo recobrar la pérdida esporádica de paquetes. El protocolo TCP tiene las siguientes características:
+
+\begin{itemize}
+	\item Proporciona comunicación bidireccional completa mediante circuitos virtuales. 
+	\item Desde el punto de vista del usuario la información es transmitida por flujos de datos. 
+	\item Confiabilidad en la transmisión de datos por medio de:
+	\begin{itemize}
+		\item Asignación de números de secuencia a la información segmentada. 
+		\item Validaciones por suma (checksum). 
+		\item Reconocimiento de paquetes recibidos. 
+	\end{itemize}
+\end{itemize}
+
+\paragraph{Fiabilidad en la transferencia de TCP.}
+
+Cada vez que un paquete es enviado se inicializa un contador de tiempo, al alcanzar el tiempo de expiración, sin haber recibido el reconocimiento, el paquete se reenvía. Al llegar el reconocimiento el tiempo de expiración se cancela. \\
+
+A cada paquete que es enviado se le asigna un número de identificador, el equipo que lo recibe deberá enviar un reconocimiento de dicho paquete, lo que indicará que fue recibido. Si después de un tiempo dado el reconocimiento no ha sido recibido el paquete se volverá a enviar. Obsérvese que puede darse el caso en el que el reconocimiento sea el que se pierda, en este caso se reenviará un paquete repetido. \\
+
+Utiliza el principio de ventana deslizable para esperar reconocimientos y reenviar información. Se define un tamaño de la ventana, que serían el número de paquetes a enviar sin esperar reconocimiento de ellos. Conforme se recibe el reconocimiento de los primeros paquetes transmitidos la ventana avanza de posición enviando los paquetes siguientes. Los reconocimientos pueden recibirse en forma desordenada. \\
+
+Si el protocolo sólo contara con reconocimientos positivos, gran parte de la capacidad de la red estaría desperdiciada, pues no se enviarían más paquetes hasta recibir el reconocimiento del último paquete enviado. El concepto de ventana deslizante hace que exista una continua transmisión de información, mejorando el desempeño de la red.
+
+\subsection{Protocolo de Datagramas de Usuario. UDP}
+
+Proporciona de mecanismos primordiales para que las aplicaciones se comuniquen entre si en máquinas remotas. Provee un servicio no confiable orientado a no conexión, por lo que el programa tiene toda la responsabilidad del control de confiabilidad, mensajes duplicados o perdidos, retardos y paquetes fuera de orden. 
+
+Este protocolo deja a la aplicación la resposabilidad de una transmisión fiable. Con él puede darse el caso de que los paquetes se pierdan o bien no sean reconstruídos de forma adecuada. Permite un intercambio de datagramas más directo entre aplicaciones, por esta razón, es idóneo para software que busque optimización en el ancho de banda consumido, ya que, UDP no sobrecarga la red con confirmaciones y avisos de datagramas desordenados o perdidos. Puede y debería elegirse para aquellas que no demanden una gran cantidad de datagramas para operar óptimamente, como es el caso de Voz sobre IP.
+
+\subsection{Unicast {\it versus} Multicast}
+
+Los servicios ``tradicionales'' de Internet están basados en lo que se conoce como IP Unicast, es decir, datagramas con un único origen y un único destino. En este caso, la comunicación se denomina ``uno a uno''. Sin embargo, en situaciones en las que hay más de dos participantes en la comunicación, la utilización de IP Unicast no es eficiente, puesto que hay que enviar la misma información a varios destinatarios simultáneamente, lo que puede sobrecargar a los emisores y la red. \\
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=10cm, height=5cm] {multicast.eps}
+\caption{Funcionamiento de IP Multicast}
+\label{fig:ip_multicast}
+\end{figure}
+
+Tradicionalmente, este problema ha sido resuelto mediante la utilización de ``reflectores'' (o Unidades de Control Multipunto , MCU, según la terminología \emph{H.323}), que son equipos a los que se conectan todos los participantes y que se encargan de la replicación de todos los datagramas que envía un participante al resto de ellos. Esta solución plantea varios problemas, sobre todo referentes al consumo excesivo de ancho de banda en la red. Frente a esta solución surge la alternativa IP Multicast, que consiste en que la red se encargue de hacer llegar los datagramas enviados por el emisor a un grupo de receptores. \\
+
+La idea de grupo se implementa mediante un rango especial de direcciones IP y la suscripción o no a un determinado grupo es dinámica y la decide el receptor en función de sí está interesado o no en recibir los datagramas dirigidos a dicho grupo. Lo más importante es que la propia red se encarga de
+replicar los paquetesparaque lleguen a todos los suscriptores del grupo. Además, todo ello se realiza de modo que por cada enlace de la red solo circule un paquete (figura 1), duplicán­dose éste en aquellos momentos en los que se llegue a una bifurcación en el camino hacia los destinatarios. \\
+
+Cuando inicialmente se diseño el esquema de direccionamiento en Internet se definieron varias clases de direccio­nes. La clase D se reservó para las direcciones multidestino, esto es, el rango que va desde la dirección 224.0.0.0 a la 239.255.255.255. Dichas direcciones son conocidas como ``direcciones de grupo'' o multicast. De todo este rango, ciertas direcciones están reservadas para un uso específico mientras que otras quedan libres para que las usen las aplicaciones que utilizan
+los servicios IP Multicast.
+
+\subsection{IPv6, la próxima generación IP}
+
+El protocolo IP en su versión 6 (IPv6, a partir de ahora), surge como un sucesor de la versión 4, que pronto se quedará corta de espacio de direcciones, debido al crecimiento exponencial de Internet. \\
+
+Al ver en el horizonte estos problemas, el IETF comenzó a trabajar en 1990 en una versión nueva de IP, que sería más eficiente y con un rango de direcciones virtualemente inagotable, siendo además más flexible, eficiente y segura. Además, de prestar una mayor atención al tipo de servicio, para poder atender adecuadamente al tráfico multimedia que se avecina. Los cambios de IPv6 respecto de IPv4 son, de forma resumida:
+\begin{itemize}
+	\item Expansión de las capacidades de direccionamiento. IPv6 incrementa el tamaño de las direcciones de 32 bits (IPv4) a 128 bits, para soportar más niveles en la jerarquía de direccionamiento, un número mayor de nodos direccionables, y un sistema de autoconfiguración de direcciones. 
+	\item Simplificación de la cabecera. Algunos campos de la cabecera del IPv4 son eliminados o pasan a ser opcionales, tanto para reducir el coste de procesamiento como el tamaño de la cabecera. 
+	\item Mayor flexibilidad para extensiones y nuevas opciones. En IPv6 no existe un campo opciones, como tal. Eliminando así las limitaciones de tamaño en la cabecera, e introduciendo una gran flexibilidad en el desarrollo de nuevas opciones. 
+	\item Capacidades de control de flujo. Se añaden capacidades que permiten marcar los paquetes que pertenezcan a un determinado tipo de tráfico, para el cual el remitente demanda una calidad mayor a la especificada por defecto o servicios en tiempo real. 
+	\item Capacidades de autenticación y privacidad de datos. IPv6 provee extensiones para soportar autenticación, e integridad y confidencialidad de datos.
+\end{itemize}
+
+\subsubsection{Direcciones IPv6}
+
+Con un octeto se pueden representar los números de 0 a 255. Por tanto las direcciones IPv4 se componen de cuatro octetos, o 32 bits, lo cual genera más de cuatro millones de direcciones. En IPv6 las direcciones se componen de 16 octetos, es decir 128 bits. Esto daría lugar a 2 128 direcciones, más o menos 340 sextillones. No obstante, esta cifra no se alcanza, ya que parte de los dígitos identifican el tipo de dirección, con lo que se quedan en 3800 millones. En cualquier caso se garantiza que no se acabarán en un plazo razonable. \\
+
+Hay tres tipos de direcciones: \emph{unicast}, \emph{anycast} y \emph{multicast}. Las direcciones \emph{unicast} identifican un sólo destino. Un paquete que se envía a una dirección unicast llega sólo al ordenador al que corresponda. En el caso de las direcciones \emph{anycast} se trata de un conjunto de ordenadores o dispositivos, que pueden pertenecer a nodos diferentes. Si se envía un paquete a una de estas direcciones lo recibirá el ordenador más cercano de entre las rutas posibles. Las direcciones \emph{multicast} definen un conjunto de direcciones pertenecientes también a nodos diferentes, pero ahora los paquetes llegan a todas las máquinas identificadas por esa dirección. \\
+
+\subsubsection{Conversión formato IPv4 $\leftrightarrows$ IPv6}
+
+Ésta es una dirección de 32 bits: $192.9.32.12$ y ésta es una dirección de 128 bits: $BAF7:7432:FFFF:FFFF:7433:73F9:FFAA$. Puede observarse que las direcciones IPv4 se forman con cuatro números decimales, que como ya se ha dicho van de 0 a 255. Para las direcciones IPv6 se usan números hexadecimales. Para representar una dirección IPv4 con IPv6 se ponen a cero los cuartetos a partir del bit 33: $0000:0000:0000:0000:0000:C009:200C$ Esta notación puede ser simplificada como $::192.9.32.12$ para equipos que no entienden IPv6 y como $::FFFF:192.9.32.12$ para equipos que sí entienden IPv4.
+
+\subsection{RFC's de IP}
+
+Más información sobre el Protocolo Internet se encuentra en estos RFC's:
+
+\begin{description}
+	\item {RFC 791} Definición técnica del protocolo IP. 
+	\item {RFC 1122} Especificación de actualizaciones y correciones efectuadas.
+	\item {RFC 1812} Requisitos y estándares que deben cumplir los fabricantes de encaminadores.
+	\item {RFC 1108} Opciones de seguridad.
+\end{description}
+
+\section{RTP/RTCP}
+
+RTP es un acrónimo de Real Time Protocol y como su nombre indica, es un protocolo diseñado para la transmisión de datos en tiempo real. Existen otros protocolos de tiempo real, pero éste el más usado y está estandarizado. En este proyecto se ha utilizado el protocolo \emph{RTP} para la transmisión de audio, ya que es un contenido con características intrínsecas de tiempo real. En esta seccion, hay una pequeña introducción a este protocolo, así como su aplicación al audio.
+
+\subsection{Introducción}
+
+\emph{RTP} (\emph{Real Time Protocol}) provee servicios de transmisión de datos con características de tiempo real, como sonido y vídeo interactivos. Estos servicios incluyen identificación del tipo de contenido (\emph{payload}), números de secuencia, marcas de tiempo y monitorización de pérdidas. \\
+
+Normalmente, las aplicaciones suelen emplear \emph{RTP} sobre \emph{UDP} para poder utilizar sus capacidades de multiplexación y servicios de comprobación de errores; ambos protocolos contribuyen a la funcionalidad del protocolo de transporte.
+Otras razones de peso para usar UDP en vez de TCP, es que RTP se ha diseñado pensando en los servicios multicast, para lo cual la conexion TCP no es apropiada por problemas de escalabilidad. En segundo lugar, RTP se ha diseñado para datos en tiempo real, la fiabilidad del transporte no es tan importanate como la recepción en el tiempo adecuado. TCP implementa la fiabilidad de transmisión usando retransmisión de paquetes, lo cual puede ser un incoveniente, ya que si se congestiona la red, la calidad sería muy inferior y congestionaría aun mas la red intentando retransmitir paquetes perdidos.
+ Sin embargo, \emph{RTP} se puede utilizar con cualquier otra red o protocolo de transporte subyacente. \emph{RTP} soporta transmisión de datos a múltiples destinos utilizando distribución por multicast si lo proporciona la red subyacente. \\
+
+Este protocolo no proporciona por si mismo ningún mecanismo para asegurar que los datos llegan en el momento que deberían o cualquier otra garantía de calidad de servicio, deja esta tarea a las capas de aplicación. No garantiza que los datos llegan ni tampoco que llegan en orden, tampoco asume que la red subyacente se encarga de que los paquetes lleguen en orden. Por estas razones RTP, se implementa generalmente dentro de la aplicación, pues estos sistemas de recuperación de paquetes perdidos o de control, deben ser implementados a nivel de aplicación. \\
+
+RTP incorpora marcas de tiempo específicas para cada medio transportado (timestamp), que se utilizan para eliminar jitter (intraflujo) y para sincronizar entre flujos (interflujo). Varios paquetes pueden llevar la misma marca de tiempo si pertenecen a la misma unidad de datos a nivel de aplicación, por ejemplo el mismo cuadro de vídeo. Incorpora números de secuencia para que el receptor sea capaz de reconstruir la secuencia emitida, pero los números de secuencia también se pueden utilizar para determinar la posición de un paquete sin necesidad de reproducirlos en orden. El \emph{payload} o identificador de carga, especifica el formato de datos, así como el esquema de compresión y descompresión, con este identificador, la aplicación receptora sabe como interpretar y reproducir los datos. Los distintos payload se definen en el RFC 1890. Otra función de RTP es identificar la fuente de los datos, lo que le permite a la aplicación receptora conocer de donde vienen los datos, por ejemplo en este proyecto permite identificar quién está hablando. \\
+
+\emph{RTP} representa un nuevo estilo de protocolos siguiendo los principios de enmarcado a nivel de aplicación y procesamiento de capas propuesto por Clark y Tennenhouse \cite{Tennenhouse}. Esto es, \emph{RTP} está pensado para ser maleable y así proporcionar la información necesaria por una aplicación particular y a menudo estará integrado en el procesamiento de la aplicación en lugar de estar implementado en una capa independiente. \emph{RTP} es un marco de protocolos que intencionadamente no está completo. Al contrario que los protocolos convencionales, en los cuales las funciones adicionales pueden aparecer haciendo el protocolo más general o añadiendo mecanismo de opciones que requeriría un \emph{parser}, \emph{RTP} está pensado para ser adaptado a través de modificaciones y/o adiciones a las cabeceras como sea necesario. Existen otras aplicaciones a las que se puede aplicar \emph{RTP} como el almacenamiento de datos continuos, simulación interactiva distribuida, control activo de divisas, y aplicaciones de control y medida. \\
+
+\emph{RTP} consta de dos partes enlazadas muy de cerca:
+\begin{description}
+    \item [El protocolo de transporte de tiempo real (\emph{RTP})], para transportar los datos que tienen propiedades de tiempo real. Sus características se han comentado anteriormente.
+    \item [El protocolo de control de \emph{RTP} (\emph{RTCP}).] Es el encargado de monitorizar la calidad del servicio y transportar la información sobre los participantes en una sesión. 
+\end{description}
+
+\paragraph{RTCP}
+
+Real Time Control Protocol, es un protocolo diseñado para trabajar conjuntamente con RTP. En una sesión RTP, los participantes se envian periódicamente distintos tipos de paquetes RTCP para tener información sobre la calidad de recepción y estadísticas de paquetes RTP perdidos, información del numero de participantes (en multicast), información adicional de los participantes, entrar y abandonar sesiones, etc. A través de RTCP se consigue:
+
+\begin{description}
+	\item[Monitorización de la calidad de servicio (QoS) y congestión de red.] Constituye la función primaria de RTCP. Esta información es util a los emisores, a los receptores y a otras terceras partes interesadas (Gateways, etc.). El emisor puede ajustar su transmisión basándose en esos informes, evaluando el rendimiento de la red para distribuciones multicast.
+	\item[Identificación de fuentes.] Las fuentes de datos se identifican en los paquetes RTP con identificadores de 32 bits generados aleatoriamente. Estos identificadores no aportan ningun tipo de información para el usuario final. Los paquetes RTCP SDES (Source Description, descripcion de fuente) contienen información textual: nombre del participante, telefono, direccion de correo electronico, localización, etc.
+	\item[Sincroniacion Intermedia.] RTCP permite sincronizar fuentes de datos que procedan de distintas sesiones RTP, para ello emplea las marcas temporales de los paquetes RTP.
+	\item[Escalado de la información de control.] Los paquetes RTCP se envian periodicamente entre los participantes, si el numero de participantes es grande, es necesario un compromiso entre la información actualizada y la sobrecarga de red. RTCP debe limitar el tráfico de control en la red acorde a la sobrecarga.
+\end{description}
+
+El protocolo \emph{RTP}, no tiene porque ir acompañado de RTCP, ya que su unica mision es transportar los datos. De hecho, muchas aplicaciones de VoIP ni siquiera soportan RTCP, ya que no es vital para la comunicación. Esta funcionalidad podría ser asumida parcial o totalmente por un protocolo de control de sesión separado.
+
+
+\section{Negociación de la sesión}
+
+Hasta el momento, en apartados anteriores, se ha visto una serie de protocolos que se usan para transmitir los datos en tiempo real, pero para transmitir esos datos, antes es necesario negociar el inicio de la sesión que se quiere establecer. Esto es, definir o negociar una serie de parámetos, como pueden ser: los puertos de envio y recepcion de RTP, los codecs de audio empleados (payload), numero de participantes (redes multicast) etc. \\
+
+Actualmente existen dos protocolos que se disputan este campo: H.323 y SIP. H.323 fue el primero en ser estandarizado por la ITU-T y usa una aproximación más tradicional, basada en el protocolo Q.931 de la RDSI y en los estándares H.XXX anteriores. H.323 no se puede considerar un protocolo abierto (el estandar no está liberado), pero ha sido la referencia de la industria hasta el momento. SIP, creado y estandarizado por IETF, -con apenas año y medio de existencia, y que todavía se encuentra en estado de desarrollo y revisión; la primera versión del RFC 2543 apareció en la primavera del 2001- se basa en un enfoque más ligero, del estilo de los protocolos de Internet, similar a HTTP (de hecho rehusa gran parte de los campos de cabecera, reglas de codificación, códigos de error y mecanismos de autenticación).
+
+\subsection{SIP {\it versus} H.323}
+
+En esta parte se compara SIP y H.323. Ambos protocolos pueden usar y usan generalmente RTP para intercambiar los datos, por tanto la elección de uno u otro no afecta a la calidad de servicio. Para realizar la comparación entre H.323 y SIP se analizaran cuatro campos: complejidad, extensibilidad, escalabilidad y disponibilidad de servicios.
+
+\begin{description}
+	\item[Complejidad.] H.323 es el más complejo de los dos protocolos, su RFC suma alrededor de 700 páginas. En cambio, SIP, con las extensiones de control de llamadas y protocolos de descripción de sesión, tiene un RFC de 260 páginas. H.323 define cientos de elementos, mientras SIP tiene sólo 37 cabeceras, cada una con un pequeño número de valores y parámetros. H.323 usa una representación binaria para sus mensajes, basados en ASN.1 y las reglas de codificación de paquetes. SIP codifica sus mensajes como texto, similar a http y rtsp. Otra ventaja de SIP es que usa una solicitud simple que contiene toda la información necesaria, mientras muchos de los servicios H.323 requieren interacción entre los diferentes componentes del protocolo que son incluidos en el estándar.
+	\item[Extensibilidad.] Es una prueba para medir un protocolo de señalización de VoIP. Como con algún servicio usado excesivamente, las características de éste proveen evolución en el tiempo y como nuevas aplicaciones son desarrolladas. Esto hace compatibles las diferentes versiones. SIP se ha desarrollado teniendo en cuenta las lecciones de HTTP y SMTP (Simple Mail Transfer Protocol), ambas evolucionan con el tiempo y constituyen un rico conjunto de extensibilidad y compatibilidad de funciones.
+H.323 también define mecanismos de extensibilidad, pero de forma más compleja.
+	\item[Escalabilidad.] La escalabilidad es importante en el uso de Internet, ya que sus servicios tienden a crecer. En este caso, los protocolos deben ser comparados en diferentes niveles: 
+	\begin{itemize}
+		\item \emph{Números largos de dominios:} como H.323 fue creado originalmente pensado para usarse en una simple LAN, tiene algunos problemas con la escalabilidad, ni siquiera la versión más reciente define el concepto de zonas y procedimientos para usar la localización de usuarios. SIP, sin embargo, usa un método de detección de bucles verificando la historia del mensaje. 
+		\item \emph{Tamaño de conferencias:} H.323 tiene soporte para multiconferencias con distribución de datos (multicast), esto requiere un punto central de control, llamado Multipoint Controller (MC), para procesar y señalizar, lo cual, tiende a convertirse en un embotellamiento para conferencias grandes. SIP no tiene necesidad de un MC central y la coordinación de conferencia es completamente distribuida, mejorando la escalabilidad y complejidad, pero, ofrece un proveedor de servicios con menos control. 
+	\end{itemize}
+	\item[Servicios.] De un modo general SIP y H.323 proveen los mismos servicios, de igual manera nuevos servicios pueden ser incorporados. En conclusión, para servicios de control de llamadas, ambos SIP y H.323 proveen capacidades de servicios de intercambio. 
+\end{description}
+
+En extensibilidad SIP proporciona mayores recursos para nuevas implementaciones y compatibilidad con nuevas versiones. H.323 soporta menos mecanismos debido al uso de ASN.1 que restringe los campos sujetos a nuevas implementaciones. Existen numerosas propuestas para ampliar el protocolo SIP que todavía no han sido publicadas como RFCs ni se han añadido a SIP. Ejemplos son: el soporte para las primitivas MESSAGE, REFER ó INFO, el modo de operación requerido para atravesar NATs ó las funcionalidades añadidas de control de llamada. En escalabilidad SIP es totalmente distribuido con lo cual puede soportar conferencias de muchos participantes. En cambio H.323 presenta un esquema centralizado que reduce escalabilidad aunque tiene mayor control. 
+
+\subsection{SDP}
+
+El Protocolo de Descripción de Sesión (SDP) se usa para describir una sesión de multimedios dentro de una solicitud SIP, es decir, se usa para propósitos de inicio de sesión, invitación a sesión, etc. El propósito de este protocolo es llevar información sobre el flujo de medios en sesiones multimedia que permiten a las personas recibir una descripción de la sesión para participar en ella. SDP es puramente un formato para la descripción de la sesión. No incorpora un protocolo de transporte, y esta pensado para usar diferentes protocolos de transporte apropiados: SIP, RTP, correo electrónico (SMTP) que usa extensiones MIME, HTTP, etc. 
+Este protocolo es un producto del Control de Sesión Multipartita de Multimedios (MMUSIC) grupo de trabajo de la IETF, RFC 2327. \\
+
+En general, SDP debe llevar información suficiente para habilitar la unión de una sesión (con la posible excepción de claves de encriptación) y anunciar los recursos a ser usados por no-participantes que pueden necesitarlos. Una descripción SDP incluye la siguiente información: 
+
+\begin{itemize}
+	\item Nombre de la sesión y propósito.  
+	\item Tiempo en que la sesión está activa.  
+	\item Los medios que comprenden la sesión.   
+	\item Información en cómo recibir esos medios tal como direcciones, puertos y formatos.  
+	\item La información adicional como el ancho de banda a ser usado en la conferencia y contactar información para la persona responsable de la sesión establecida. 
+\end{itemize}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=8cm, height=5cm] {protocolos.eps}
+\caption{Pila de protocolos}
+\label{fig:protocolos}
+\end{figure}
+
+\section{XML}
+
+XML, es el estándar de {\it Extensible Markup Language}. XML no es más que un conjunto de reglas para definir etiquetas semánticas que organizan un documento en diferentes partes, es decir, XML es un metalenguaje que define la sintaxis utilizada para definir otros lenguajes de etiquetas estructurados. \\
+
+XML fue creado al amparo del {\it Word Wide Web Consortium} (W3C), organismo que vela por el desarrollo web partiendo de las amplias especificaciones de \emph{SGML}. Su desarrollo comenzó en 1996 y la primera versión salió a la luz en febrero de 1998 bajo la definición de: ``Sistema para definir validar y compartir formatos de documentos en la web''. 
+
+\paragraph{XML tiene como objetivos:}
+
+\begin{itemize}
+	\item XML debe ser directamente utilizable sobre Internet.
+    \item XML debe soportar una amplia variedad de aplicaciones.
+    \item XML debe ser compatible con \emph{SGML}.
+    \item Debe ser fácil la escritura de programas que procesen documentos XML.
+    \item El número de características opcionales en XML debe ser absolutamente mínima, idealmente cero.
+    \item Los documentos XML deben ser legibles por humanos y razonablemente claros.
+    \item El diseño de XML debe ser preparado rápidamente.
+    \item El diseño de XML debe ser formal y conciso.
+    \item Los documentos XML deben ser fácilmente creables.
+    \item La concisión en las marcas XML es de mínima importancia.
+\end{itemize}
+
+\paragraph{Principales características}
+
+\begin{itemize}
+    \item Es una arquitectura abierta y extensible. No necesita versiones para que puedan funcionar en futuros aplicaciones. Los identificadores pueden crearse de manera simple y ser adaptados en el acto por medio de un validador de documentos (parser).
+    \item Mayor consistencia, homogeneidad y amplitud de los identificadores descriptivos del documento con XML 
+    \item Integración de los datos de las fuentes más dispares. Se podrá hacer el intercambio de documentos entre las aplicaciones tanto en el propio PC como en una red.
+ 	\item Datos compuestos de múltiples aplicaciones. La extensibilidad y flexibilidad de este lenguaje permite agrupar una variedad amplia de aplicaciones, desde páginas web hasta bases de datos.
+    \item Exportabilidad a otros formatos de publicación (papel, web, etc.). El documento maestro de la edición electrónica podría ser un documento XML que se integraría en el formato deseado de manera directa.
+\end{itemize}
+
+\paragraph{Estructura de XML}
+
+XML consta de varias especificaciones (el propio XML sienta las bases sintácticas y el alcance de su implementación), pero las más importantes son dos:
+
+\begin{description}
+	\item [\emph{DTD} (Document Type Definition):] Definición del tipo de documento. Es, en general, un archivo/s que encierra una definición formal de un tipo de documento y, a la vez, especifica la estructura lógica del  documento. Define tanto los elementos de un documento como sus atributos. El DTD del XML es opcional. En tareas sencillas no es necesario construir un DTD, entonces se trataría de un documento ``bien formado'' (well-formed) y si lleva DTD será un documento ``validado'' (valid).
+	\item [\emph{XSL} (eXtensible Stylesheet Language):] Define o implementa el lenguaje de estilo de los documentos escritos para XML. Este estándar está basado en el lenguaje de semántica y especificación de estilo de documento (\emph{DSSSL}, Document Style Semantics and Specification Language, ISO/IEC 10179).
+\end{description}
+
+\subsection{Estándares XML}
+
+Los estándares Unicode e ISO/IEC 10646 para caracteres, RFC 1766 para identificación de lenguajes, ISO 639 para códigos de nombres de lenguajes, e ISO 3166 para códigos de nombres de países, proporciona toda la información necesaria para entender la versión 1.0 de XML y construir programas que los procesen.
+
+\section{Data Encryption Standard. DES}
+
+DES es un esquema de cifrado simétrico desarrollado en 1977 por el Departamento de Comercio y la Oficina Nacional de Estándares de EEUU en colaboración con la empresa IBM, que se creó con objeto de proporcionar al público en general un algoritmo de cifrado normalizado para redes de ordenadores. Estaba basado en la aplicación de todas las teorías criptográficas existentes hasta el momento, y fué sometido a las leyes de USA. \\
+
+Se basa en un sistema monoalfabético, con un algoritmo de cifrado consistente en la aplicación sucesiva de varias permutaciones y sustituciones. Inicialmente los datos a cifrar se someten a una permutación, con bloque de entrada de 64 bits (o múltiplo de 64), para posteriormente ser sometido a la acción de dos funciones principales, una función de permutación con entrada de 8 bits y otra de sustitución con entrada de 5 bits, en un proceso que consta de 16 etapas de cifrado. \\
+
+En general, DES utiliza una clave simétrica de 64 bits, de los cuales 56 son usados para el cifrado, mientras que los 8 restantes son de paridad, y se usan para la detección de errores en el proceso. Como la clave efectiva es de 56 bits, son posible un total de 2 elevado a 56 = 72.057.594.037.927.936 claves posibles, es decir, unos 72.000 billones de claves, por lo que la ruptura del sistema por fuerza bruta o diccionario es súmamente improbable, aunque no imposible si se dispone de suerte y una grán potencia de cálculo. \\
+
+Los principales inconvenientes que presenta DES son:
+\begin{itemize}
+    \item Se considera un secreto nacional de EEUU, por lo que está protegido por leyes específicas, y no se puede comercializar ni en hardware ni en sofware fuera de ese país sin permiso específico del Departamento de Estado.
+    \item La clave es relativamente corta, tanto que no asegura una fortaleza adecuada. Hasta ahora había resultado suficiente, y nunca había sido roto el sistema. Pero con la potencia de cálculo actual y venidera de los computadores y con el trabajo en equipo por Internet se crée que se puede violar el algoritmo, como ya ha ocurrido una vez, aunque eso sí, en un plazo de tiempo que no resultó peligroso para la información cifrada.
+    \item No permite longitud de clave variable, con lo que sus posibilidades de configuración son muy limitadas, además de permitirse con ello la creación de limitaciones legales.
+    \item La seguridad del sistema se ve reducida considerablemente si se conoce un número suficiente textos elegidos, ya que existe un sistema matemático, llamado \emph{Criptoanálisis Diferencial}, que puede en ese caso romper el sistema en 2 elevado a 47 iteraciones.
+\end{itemize}
+
+Entre sus ventajas cabe citar:
+
+\begin{itemize}
+    \item Es el sistema más extendido del mundo, el que más máquinas usan, el más barato y el más probado.
+    \item Es muy rápido de calcular y fácil de implementar.
+    \item Desde su aparición nunca ha sido roto con un sistema práctico.
+\end{itemize}
+

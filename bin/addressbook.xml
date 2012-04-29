@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<agenda>
+<!--Fichero de contactos, programa 'addressbook'-->
+
+<contacto default="TRUE" ignore="FALSE">
+	<nombre>defecto</nombre>
+	<usuario>defecto</usuario>
+	<host>host</host>
+	<descripcion> default </descripcion>
+	<foto>./pixmaps/elton.gif</foto>
+</contacto>
+
+</agenda>

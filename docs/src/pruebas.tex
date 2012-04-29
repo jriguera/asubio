@@ -1,0 +1,79 @@
+\capitulo{Pruebas, resultados y rendimiento}
+\label{chp:pruebas}
+\minitoc
+\newpage
+
+Para la realización de todas las pruebas, el programa se ejecutó en dos máquinas con estas características:
+
+\begin{description}
+	\item [CPU 1]: Athlon 700 Mhz.
+	\item [Memoria 1]: 256 MB.
+	\item [SO 1]: Debian GNU/Linux ``Sarge'' (testing).
+	\item [CPU 2]: Pentium II 350 Mhz.
+	\item [Memoria 2]: 192 MB.
+	\item [SO 2]: Debian GNU/Linux ``Sarge'' (testing).
+	\item [Red]: IPv4 (local, a través de switch): 10 MB/s.
+	\item [Retardo] medio entre paquetes de la red: 0.760 ms.
+\end{description}
+
+El programa estaba compilado para plataformas I386, es decir sin ningún tipo de optimización y con símbolos de depurado: {\it -g -ggdb}. El formato de audio tratado internamente en el programa es: 
+
+\begin{description}
+	\item [Tamaño]: 2 bytes (16 bits).
+	\item [Ordenamiento bytes]: LITTLE ENDIAN.
+	\item [Frecuencia]: 8000 Hz.
+	\item [Canales]: monoaural (1 canal).
+\end{description}
+
+Dichas pruebas en la LAN han sido realizadas sin ningún tipo de obstáculo al tráfico, como cortafuegos, y sin la presencia del proxy SSIP.
+
+\section{Pruebas y resultados del software}
+
+Debido al método evolutivo de desarrollo del software, se fueron realizando pruebas secuencialmente, a medida que se añadían características, con lo que las pruebas de requerimiento apenas existieron. Muchas pruebas se realizaron con programas de apoyo implementados específicamente para esos menesteres (pruebas de caja blanca). El objetivo principal era comprobar que no se iban acumulando fallos en los subsistemas que se iban desarrollando y perfeccionando. Sin embargo, una vez finalizado el proyecto, se realizaron una serie de pruebas que se detallan a continuación (pruebas de caja negra):
+
+\paragraph{Pruebas de configuración y arranque del sistema}
+\begin{description}
+	\item [Propósito] Comprobar que el software desarrollado es robusto frente a operaciones malintencionadas ó erróneas en el momento del arranque y configuración. Entre estas acciones se pueden incluir: introdución incorrecta de parametros en la interfaz, inexistencia de un fichero de configuración e incorrecciones sintácticas ó léxicas en dicho fichero de configuración, etc. Dentro de estas pruebas, también se incluyen las del subsistema de procesamiento de la agenda de contactos en formato XML.
+	\item Tratar de introducir direcciones IP imposibles (con algunos de sus campos superiores a 255) o con tres ó cinco número decimales. También probar a usar puertos superiores a 65.535 ó puertos negativos. Los posibles errores que se producen son: una entrada no reconocida (error sintáctico), el valor asignado a otra no se corresponde con lo esperado (error léxico) y por último la imposibilidad de generar de forma interna un parámetro esencial para el funcionamiento que no ha sido especificado por el usuario (error al generar un parámetro).
+\end{description}
+
+\paragraph{Comprobación del subsistema RTP/RTCP}
+
+\begin{description}
+	\item [Propósito] El propósito de esta prueba consiste en comprobar que el subsistema RTP y RTCP cumple el estándar y es capaz de resistir paquetes mal formados o incorrectos.
+	\item Para ello se usó la herramienta que analiza el tráfico de red {\it etherape} y es capaz de reconocer paquetes RTP y localizar todos sus campos. Para el envío incorrecto de paquetes RTP mal formados, se empleó el comando {\it nc} (netcat) que permite enviar datos arbitrarios a un puerto especificado.
+\end{description}
+
+\paragraph{Comprobación del subsistema SSIP/NOTIFY}
+
+\begin{description}
+	\item [Propósito] comprobar que el subsistema SSIP y NOTIFY es robusto, resiste paquetes mal formados o incorrectos y con conexiones erróneas.
+	\item También se usó la herramienta {\it etherape} para analizar el tráfico de red junto con {\it netcat} para probar si realmente funcionan los timeouts y las comprobaciones en todos los campos del paquete.
+\end{description}
+
+\paragraph{Pruebas de estrés}
+
+\begin{description}
+	\item [Propósito] Someter al programa a un test de funcionamiento continuo.
+	\item Consiste en poner a funcionar el programa durante unas 6 horas seguidas para comprobar con ayuda de {\it memprof}, si quedan regiones de memoria perdidas. Otra prueba consistió en modificar el código fuente para que creara sesiones RTP indefinidamente. La primera prueba permitió localizar zonas de memoria perdidas y corregir los fallos. La segunda permitió comprobar la robusted del programa, en el PC 2, consiguió crear 197 threads concurrentes. 
+\end{description}
+
+\paragraph{Pruebas al \textbf{Proxy SSIP}}
+
+\begin{description}
+	\item [Propósito] Comprobar que el proxy no crea procesos indefinidamente y responde a las especificaciones. También pruebas de estrés.
+	\item Como gran parte del código del proxy está reutilizado, se procedió a comprobar que es capaz de limitar el número de procesos hijo y que registra cualquier incidencia mediante {\it syslog}. Para ello se colocó el número máximo de hijos en 1 y se intentó lanzar una segunda negociación que fue rechazada y ``logeada'' inmediatamente. También se lanzó un bucle de conexiones erróneas que el proxy superó perfectamente.
+\end{description}
+
+\section{Rendimiento}
+
+El rendimiento del programa depende de varios factores, los más importantes son
+\begin{description}
+	\item [Carga del sistema]. En sistemas multicast, como son los de tipo Unix, todos los procesos compiten en ``igualdad'' de condiciones para conseguir la CPU. Como esta aplicación tiene un componente de tiempo real, si no consigue la CPU cada cierto tiempo se pueden perder datos, ya que el sonido es un flujo constante.
+	\item [MTU de la red]. Si se envían paquetes RTP muy pequeños (comprimidos), la transmisión no resultará óptima, ya que, el bloque de datos, al ir descendiendo por la pila de protocolos, se van añadiendo cabeceras. Si esas cabeceras ocupan una porción significativa del paquete, no se estará transmitiendo óptimamente, ya que habrá mucha fragmentación en la red, con paquetes muy pequeños.
+	\item [Tamaño del bloque de audio del dispositivo]. Si el tamaño es muy pequeño, el sistema necesitará leer más asiduamente bloques de audio, mientras que con un tamaño muy grande, se puede permitir más relajación. Las ventajas de un tamaño de bloque pequeño, son que se reduce el retardo de la conversación (lag) a cambio de más uso de CPU, con un tamaño grande, se incrementa la latencia (lag) resultando molesto si dura más de 3/4 de segundos, pero, no se necesita tanta CPU.
+\end{description}
+
+En general, el rendimiento de la aplicación en condiciones normales es bueno, el uso de la CPU no llega al 1\% -para una sesión y con el plugin de compresión ADPCM-. El rendimiento global depende mucho de los plugins que se empleen, si necesitan mucha CPU, se estará reduciendo el tiempo a los demás threads concurrentes, con lo que puede suceder que se pierdan frames de audio. En general el rendimiento computacional de todo el programa en un caso normal está entre \emph{O(log n)} y \emph{O(n)}.
+
+

@@ -1,0 +1,42 @@
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.1}Consideraciones previas}{\reset@font\mtcSfont 49}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.2}Visi\'on general}{\reset@font\mtcSfont 50}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.2.1}Entorno de desarrollo}{\reset@font\mtcSSfont 50}}
+{\reset@font\mtcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode Hardware:}{\reset@font\mtcPfont 50}}
+{\reset@font\mtcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode Software:}{\reset@font\mtcPfont 51}}
+{\reset@font\mtcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode Documentaci\'on:}{\reset@font\mtcPfont 51}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.2.2}Entorno de operaci\'on}{\reset@font\mtcSSfont 51}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.3}\textbf {Asub\IeC {\'\i }o}}{\reset@font\mtcSfont 52}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.3.1}Arquitectura funcional}{\reset@font\mtcSSfont 52}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Interfaz Gr\'afica Usuario. GUI}{\reset@font\mtcSSSfont 52}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Acceso, tratamiento y transmisi\'on de audio}{\reset@font\mtcSSSfont 52}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Gesti\'on de la Agenda de contactos}{\reset@font\mtcSSSfont 53}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.3.2}Requerimientos funcionales}{\reset@font\mtcSSfont 55}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Configuraci\'on}{\reset@font\mtcSSSfont 55}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Operaciones}{\reset@font\mtcSSSfont 55}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Interfaz Gr\'afica Usuario. GUI}{\reset@font\mtcSSSfont 57}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.4}\textbf {Proxy SSIP}}{\reset@font\mtcSfont 58}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.4.1}Objeto}{\reset@font\mtcSSfont 58}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.4.2}Alternativas}{\reset@font\mtcSSfont 58}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.4.3}Objetivos}{\reset@font\mtcSSfont 59}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.4.4}Requerimientos}{\reset@font\mtcSSfont 59}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Seguridad}{\reset@font\mtcSSSfont 60}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Gesti\'on de usuarios}{\reset@font\mtcSSSfont 60}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Gesti\'on de negociaci\'on de inicio de sesi\'on}{\reset@font\mtcSSSfont 60}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Configuraci\'on}{\reset@font\mtcSSSfont 60}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.5}M\'etodo y tecnolog\IeC {\'\i }as de trabajo}{\reset@font\mtcSfont 61}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.5.1}Glib, Gtk+ y libxml2}{\reset@font\mtcSSfont 62}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Introducci\'on a Glib y Gtk+}{\reset@font\mtcSSSfont 62}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Caracter\IeC {\'\i }sticas}{\reset@font\mtcSSSfont 62}}
+{\reset@font\mtcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode Glib}{\reset@font\mtcPfont 63}}
+{\reset@font\mtcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode GTK+}{\reset@font\mtcPfont 63}}
+{\reset@font\mtcPfont\mtc@string\contentsline{paragraph}{\noexpand \leavevmode Libxml2}{\reset@font\mtcPfont 64}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.5.2}Acesso a red}{\reset@font\mtcSSfont 64}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.5.3}Librer\IeC {\'\i }a RTP/RTCP}{\reset@font\mtcSSfont 64}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.5.4}Sonido}{\reset@font\mtcSSfont 65}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Open Sound System. OSS}{\reset@font\mtcSSSfont 66}}
+{\reset@font\mtcSSSfont\mtc@string\contentsline{subsubsection}{\noexpand \leavevmode Advanced Linux Sound Architecture. ALSA}{\reset@font\mtcSSSfont 66}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.5.5}Cifrado con DES}{\reset@font\mtcSSfont 67}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.6}Proceso de negociaci\'on de inicio de sesi\'on}{\reset@font\mtcSfont 68}}
+{\reset@font\mtcSfont\mtc@string\contentsline{section}{\noexpand \leavevmode \numberline {4.7}Otras consideraciones}{\reset@font\mtcSfont 68}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.7.1}Licencia de distribuci\'on del c\'odigo}{\reset@font\mtcSSfont 68}}
+{\reset@font\mtcSSfont\mtc@string\contentsline{subsection}{\noexpand \leavevmode \numberline {4.7.2}Distribuci\'on del proyecto}{\reset@font\mtcSSfont 69}}
