@@ -1,0 +1,6 @@
+
+Más información del porte de XML para
+Windows en:
+http://www.zlatkovic.com/projects/libxml/binaries.html
+
+

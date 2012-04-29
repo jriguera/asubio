@@ -1,0 +1,19 @@
+The files in this directory are software that GTK+ 
+requires that is not officially distributed at this site.
+
+We try to keep these files up to date, but no guarantee is made in
+that regard. The original locations for these files are:
+
+ pkg-config - http://www.freedesktop.org/software/pkgconfig/
+ TIFF       - http://www.libtiff.org/
+ libpng     - http://www.libpng.org/
+ JPEG       - ftp://ftp.uu.net/graphics/jpeg/
+
+Owen Taylor <otaylor@redhat.com>
+9 Mar 2002
+
+
+  
+
+
+

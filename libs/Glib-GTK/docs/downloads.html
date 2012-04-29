@@ -1,0 +1,299 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN"><html><head><title>Tor Lillqvist--GTK+ and GIMP for Windows--Downloads</title>
+  
+  <link rev="made" href="mailto:tml@iki.fi"></head>
+
+<body>
+<table border="0">
+  <tbody><tr> 
+    <td width="200"><img src="ficheiros_downloads/pappa-seal.gif" width="190" height="245"></td>
+    <td> 
+      <div align="left">
+        <p><font size="+3">GTK+ and GIMP for Windows</font></p>
+	<p><font size="+3">Downloads</font></p>
+      </div>
+    </td>
+  </tr>
+  <tr> 
+    <td valign="top" width="200">
+      <font size="+1"><a href="http://www.iki.fi/tml/index.html">Tor Lillqvist (tml)</a></font><br>
+	    <a href="http://www.iki.fi/tml/gimp/index.html">GIMP Pages</a> --
+	    <a href="http://www.gimp.org/%7Etml/gimp/win32/index.html">Windows port</a>
+	      <ul>
+	        <li><a href="http://www.gimp.org/%7Etml/gimp/win32/why.html">Why?</a></li>
+	        <li><a href="http://www.gimp.org/%7Etml/gimp/win32/screenshots.html">Screenshots</a></li>
+	        <li><font color="#ff0000">Downloads</font></li>
+	      </ul>
+    </td>
+    <td>
+
+<h3>Redistribution on other web sites, CD-ROM etc</h3>
+
+You are welcome to redistribute the GIMP on other web sites, CD-ROM,
+and other media. You don't have to ask for permission. That's one of
+the points of Free Software. One important thing that the GNU license
+requires is that <b>you must also redistribute the source</b>
+code. This means the GIMP, GLib, GTK+ 1.3.0 and gettext sources from
+this site (ftp.gtk.org is the same site as this). Also the libiconv
+sources at the sourceforge.net site linked to from below must be
+redistributed.
+
+<h3>Installer</h3>
+
+<p>There is a GIMP installer that contains the appropriate stuff from
+these zipfiles (or relatevely fresh previous versions) at <a href="http://www2.arnes.si/%7Esopjsimo/gimp/">http://www2.arnes.si/~sopjsimo/gimp/</a>.
+That installer is created by <a href="mailto:jernej.simoncic@guest.arnes.si">Jernej Simoncic</a>, so
+please ask him about problems with it.</p>
+
+<h3>Prebuilt binary packages, developer packages, and source</h3>
+
+<p>These packages are for experienced GIMP and Windows users, and for
+people who develop software that use GLib and/or GTK. The binaries
+(DLLs and executables) in these packages are <b>not for the Cygwin
+environment</b>. They use the MSVCRT runtime. The files included in
+these zip archives are not compatible with, or drop-in replacements
+for, the stuff used in the GIMP for Windows from December 2000. </p>
+
+<p>(For Cygwin builds of GTK etc, check out <a href="http://web.sfc.keio.ac.jp/%7Es01397ms/cygwin/">Masahiro Sakai's
+site</a>.)</p>
+
+<p>There are runtime and developer packages. The runtime packages
+include auxiliary executables, DLLs, and files needed at runtime. The
+developer packages include package-related developer tool executables,
+import libraries, headers, pkg-config files, and documentation.</p>
+
+<p>(In some cases the runtime and developer packages are combined.)</p>
+
+<p>For everything to work as smoothly as possibly, unzip the files
+below (or just those you need) into some directory of your
+choice. Let's call that directory <i>top</i>. The add
+<i>top</i><tt>\bin</tt> and <i>top</i><tt>\lib</tt> to your PATH. 
+
+</p><p>pkg-config is a replacement for the glib-config and gtk-config
+scripts that previously were used on Unix. (No such scripts were
+included in my Windows port, though.)</p>
+ 
+<p>You can use the pkg-config command in your makefiles like this:</p>
+
+<pre>GLIB_CFLAGS=`pkg-config --cflags glib-2.0`
+GLIB_LIBS=`pkg-config --libs glib-2.0`
+...
+foobar.exe : $(FOOBAR_OBJS)
+	   $(CC) -o $@ $(FOOBAR_OBJS) $(GLIB_LIBS)
+</pre>
+
+<p>Etc. That only works with a Unixish Make and especially with a
+command interpreter (shell) that understands backquotes. (I hope you
+notice those backquotes in the above Makefile snippet, and understand
+what they mean. If you don't, educate yourself.)</p>
+
+<p>I advise not to use a directory with spaces or other funny
+character in the name as <i>top</i>. Otherwise you will get problems
+when using pkg-config output in makefiles. </p>
+
+<p>If you are a MSVC user and use nmake, it's a bit more
+complicated. nmake (or the standard Windows command interpreter it
+uses, command.com or cmd.exe) doesn't support backquotes. You must run
+pkg-config manually with the switch <tt>--msvc-syntax</tt>, and paste
+its output into your nmake makefile.</p> 
+
+<p>On NT/2k/XP, it is possible to have nmake create temporary files
+containing the output from pkg-config, and use those in a nmake
+makefile like this: </p>
+
+<pre>foobar.exe: foobar.obj __gtk_libs.mak
+	cl -MD foobar.obj @__gtk_libs.mak
+	@del __gtk_libs.mak
+
+foobar.obj: foobar.c __gtk_cflags.mak
+	cl -MD -c @__gtk_cflags.mak foobar.c
+	@del __gtk_cflags.mak
+
+__gtk_cflags.mak:
+	pkg-config --msvc-syntax --cflags gtk+-2.0 &gt;$@
+
+__gtk_libs.mak:
+	for /F "delims==" %i in ('pkg-config --msvc-syntax --libs gtk+-2.0') \
+		do echo /link %i &gt;$@
+</pre>
+
+<p>Note in the above makefile fragment that the
+<tt>__gtk_libs.mak</tt> file is created using the <tt>for /F</tt>
+syntax available only in the cmd.exe command interpreter on
+NT/2k/XP. This obscure acrobatics is needed because we want
+<tt>__gtk_libs.mak</tt> to contain a line that starts with
+<tt>/link</tt>, but pkg-config cannot output the <tt>/link</tt> flag
+itself as a cl command line might contain several invokations of
+pkg-config --libs. We cannot put the <tt>/link</tt> on the cl command
+line that links <tt>foobar.exe</tt> either, as cl then gets confused
+and runs the linker with a command file that on one line has
+<tt>@__gtk_libs.mak</tt>, and link.exe doesn't like that. Sigh.</p>
+
+<ul>
+        <li><p><a href="http://sourceforge.net/project/showfiles.php?group_id=25167">
+        GNU libiconv</a> for Win32. <a href="http://www.gnu.org/software/libiconv/">GNU Libiconv</a>
+        is an implementation of <a href="http://www.opennc.org/onlinepubs/7908799/xsh/iconv.html">iconv</a>.
+        GLib uses libiconv, so you will need this. To install, put the
+        DLLs and LIBs in the <i>top</i>\lib directory, and put the EXE
+        in the <i>top</i>\bin directory. If you intend to develop
+        software using gcc and libtool that would use libiconv, copy
+        iconv.lib to libiconv.a. (libtool doesn't recognize .lib
+        files, even if GNU ld does.)</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/libintl-0.10.40-tml-20020904.zip">
+	libintl-0.10.40-tml-20020904.zip</a>, containing GNU libintl
+	(from <a href="http://www.gnu.org/software/gettext/">GNU
+	gettext</a>0.10.40) modified a bit by me for Windows. GLib
+	uses libintl, so you will need this.</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/gettext-dev-0.10.40-20020904.zip">gettext-dev-0.10.40-20020904.zip</a>,
+	containing the corresponding headers, import libraries, manual
+	pages, and the gettext commands (msgfmt.exe etc). You will
+	need this if you rebuild glib or other stuff that uses
+	libintl. The msgfmt command is needed if you want to recompile
+	message catalogs. The other commands can be used to mangle
+	message catalogs in other ways. Using some other distribution
+	of gettext would be fine, too. Only the libintl DLL has some
+	changes by me.</p></li>
+
+	<li><p>The sources are in <a href="http://www.gimp.org/%7Etml/gimp/win32/gettext-0.10.40-tml-20020904-src.zip">gettext-0.10.40-tml-20020904-src.zip</a>.</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/glib-2.2.1.zip">glib-2.2.1.zip</a>
+	Runtime package for GLib 2.2.1. Requires libiconv and
+	libintl.</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/glib-dev-2.2.1.zip">glib-dev-2.2.1.zip</a>,
+	corresponding developer package, i.e. headers, import
+	libraries and documentation.</p></li>
+
+	<li><p><a href="ftp://ftp.gtk.org/pub/gtk/v2.2/glib-2.2.1.tar.gz">glib-2.2.1.tar.gz</a>,
+	corresponding sources.</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/pkgconfig-0.14.zip">
+	pkgconfig-0.14.zip</a>. <a href="http://www.freedesktop.org/software/pkgconfig/">Pkg-config</a>
+	is a neat program that is useful in makefiles etc. It manages
+	compile and link flags. This is pkg-config 0.14. Requires GLib
+	2.0</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/pkgconfig-0.14-src.zip">Sources for
+	pkg-config</a> (On this site, to satisfy strict interpretation
+	of GPL requirements. Official sources available from <a href="http://www.freedesktop.org/software/pkgconfig/">www.freedesktop.org</a>)</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/gtk+-1.3.0-20030216.zip">gtk+-1.3.0-20030216.zip
+	</a>. Runtime package. This is the gtk-1-3-win32-production
+	branch of GTK+. The GTK+ version is 1.3.0, which is quite
+	old. The GTK+ API had not yet changed much at that time, it is
+	still mostly like GTK+ 1.2.7. Requires GLib 2.0 or 2.2.0.</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/gtk+-dev-1.3.0-20030115.zip">gtk+-dev-1.3.0-20030115.zip</a>.
+	Corresponding developer package.</p>
+
+	</li><li><p>The source for this GTK+ version is in <a href="http://www.gimp.org/%7Etml/gimp/win32/gtk+-1.3.0-20030115-src.zip">gtk+-1.3.0-20030115-src.zip</a>. There
+	is no other distribution of the source to this GTK+
+	branch.</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/dirent.zip">dirent.zip</a>. The public domain
+	&lt;dirent.h&gt; implementation from mingw, separately
+	packaged for MSVC users. Not directly related to GLib, but
+	here for the convenience of MSVC users, as there used to be a
+	dirent wrapper using #defines in earlier GLib versions for
+	Win32. Needed only by developers that use MSVC.</p>
+
+	<p>In the current GLib, there are real dirent wrappers (see
+	&lt;gdir.h&gt;).</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/gimp-1.2.4-20030213.zip">gimp-1.2.4-20030213.zip</a>.
+	GIMP 1.2.4 <b>prerelease</b>. GIMP 1.2.4 is not yet released
+	officially. Requires GLib 2.x and GTK+ 1.3.0. Some plug-ins
+	require zlib, libpng, libjpeg, libtiff and freetype. (The only
+	difference between this file and the previous version,
+	gimp-1.2.4-20030115.zip, is a few fixed
+	translations.)</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/gimp-dev-1.2.4-20030115.zip">gimp-dev-1.2.4-20030115.zip</a>.
+	Corresponding developer package, i.e. libraries and headers
+	for developing and building GIMP plug-ins.</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/gimp-1.2.4-tml-20030119-src.zip">gimp-1.2.4-tml-20030119-src.zip</a>.
+	GIMP sources from my source tree. If you redistribute the GIMP
+	executables, you must also redistribute this file. Corresponds
+	to what was in CVS on the date indicated, plus some changes by
+	me for Win32 builds that I haven't committed to CVS, because
+	they are hacks that should be done better, and I don't want to
+	risk disturbing Unix builds. Unless you are very sure that you
+	want to build from exactly the same sources as I happened to
+	do at the date indicated, do consider getting an official
+	source distribution instead. </p>
+
+	<p> In addition to GIMP sources, also the sources to the
+	unofficial plug-ins included in the GIMP zipfile.
+	</p></li>
+
+	<li><p><a href="http://gnuwin32.sourceforge.net/packages/zlib.htm">
+	Zlib</a>, <a href="http://gnuwin32.sourceforge.net/packages/libpng.htm">libpng</a>,
+	<a href="http://gnuwin32.sourceforge.net/packages/jpeg.htm">libjpeg</a>,
+	<a href="http://gnuwin32.sourceforge.net/packages/tiff.htm">libtiff</a>
+	and <a href="http://gnuwin32.sourceforge.net/packages/freetype.htm">FreeType2</a>.
+	As ported and packaged for Windows by the <a href="http://gnuwin32.sourceforge.net/">GnuWin32</a> project.
+	These are used both by GIMP, and by GTK+ 2.2.x below (except
+	FreeType2, which is used just by GIMP's freetype plug-in and
+	Pango's PangoFT2 engine). The "bin" packages are the runtime
+	ones, the "lib" packages are the ones needed by
+	developers.</p></li>
+
+	<li><p><a href="http://www.iki.fi/tml/gimp/win32/gimp-gif-1.2.3-20020310.zip">gimp-gif-1.2.3-20020310.zip</a>. The
+	gif plug-in. Covered by the Unisys LZW patent, so don't
+	download this if you live in a country where the patent is
+	valid and you don't have a license!</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/xpm-nox-4.0.3-20020617.zip">xpm-nox-4.0.3-20020617.zip</a>
+	A version of the Xpm library that does not use X. Use by the
+	xpm plug-in in GIMP.</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/xpm-nox-dev-4.0.3-20020112.zip">xpm-nox-dev-4.0.3-20020112.zip</a>,
+	corresponding developer package.</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/gimp-pspi-1.0.2-src.zip">gimp-pspi-1.0.2-src.zip</a>. Sources
+	for the pspi plug-in.</p></li>
+</ul>
+
+<p>The packages below are GTK+ 2.2.x and its dependents. GIMP 1.2.x
+does not use these.</p>
+
+<ul>
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/gtk+-2.2.1.zip">gtk+-2.2.1.zip</a>
+	GTK+ 2.2.1. Requires glib, atk, pango, zlib, libpng,
+	libjpeg and libtiff.</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/gtk+-dev-2.2.1.zip">gtk+-dev-2.2.1.zip</a>,
+	corresponding developer package.</p></li>
+
+	<li><p><a href="ftp://ftp.gtk.org/pub/gtk/v2.2/gtk+-2.2.1.tar.gz">gtk+-2.2.1.tar.gz</a>,
+	corresponding sources.</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/atk-1.0.3-20020821.zip">atk-1.0.3-20020821.zip</a>, <a href="http://www.gimp.org/%7Etml/gimp/win32/pango-1.2.1.zip">pango-1.2.1.zip</a>.
+	Used by GTK+ 2.2.1.</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/atk-dev-1.0.3-20020821.zip">atk-dev-1.0.3-20020821.zip</a>,
+	<a href="http://www.gimp.org/%7Etml/gimp/win32/pango-dev-1.2.1.zip">pango-dev-1.2.1.zip</a>.
+	Corresponding developer packages.</p></li>
+
+	<li><p><a href="ftp://ftp.gtk.org/pub/gtk/v2.0/atk-1.0.3.tar.gz">atk-1.0.3.tar.gz</a>,
+	<a href="ftp://ftp.gtk.org/pub/gtk/v2.2/pango-1.2.1.tar.gz">pango-1.2.1.tar.gz</a>
+	Corresponding sources.</p></li>
+
+	<li><p><a href="http://www.gimp.org/%7Etml/gimp/win32/fontconfig-1.0.1.zip">fontconfig-1.0.1.zip</a>. Used by
+	pangoft2, the FreeType2 backend in Pango. GTK+ does not use
+	pangoft2, so you probably will not need this.</p>
+
+	<p>Fontconfig uses the <a href="http://www.jclark.com/xml/expat.html">expat</a>
+	library. Download expat.zip and put the xmlparse.dll in your
+	PATH.</p></li>
+</ul>
+    </td>
+  </tr>
+</tbody></table>
+<hr>
+<p>
+    <a href="http://validator.w3.org/check/referer"><img border="0" src="ficheiros_downloads/valid-html32.png" alt="Valid HTML 3.2!" height="31" width="88"></a>
+  </p>
+</body></html>
