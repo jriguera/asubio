@@ -1,0 +1,52 @@
+
+	asubio v1.0 (c) 2003 José Riguera López <jriguera@gmail.com>
+
+Audio talk Linux service for local networks / 
+Servicio Linux de audio talk para redes locales
+
+
+=== English ===
+
+The aim of this project was the creation of a VoIP application that would allow
+several users to communicate with each other using PC computers. 
+
+The program runs on Linux platforms, and through a RTP/RTCP bidirectional 
+connection, making possible a conversation between two or more people like a 
+phone. The application has an open and modular architecture, allowing you to 
+expand its functionality with three types of plugins: I/O audio, audio effects 
+and voice compression codecs. It is a multisession program, that allows carry 
+on multiple conversations simultaneously active, with or without multicast 
+networks. It is also prepared to support IPv6, the next generation of IP 
+protocol.
+
+It was developed with Glib-2.0 which ensures that the system is portable across
+Unix platforms and even, with slight modifications, to MS Windows platforms. 
+The GUI which was developed in GTK +2.0, is completely intuitive. It can show a 
+photo of the remote user and has an XML addressbook to manage the contacts.
+
+
+=== Spanish ===
+
+El objetivo del presente proyecto fue la creación de una aplicación de VoIP que 
+permitiese a varios usuarios comunicarse entre sí usando ordenadores PC. 
+
+El programa se ejecuta en plataformas Linux y, mediante una conexión 
+bidireccional RTP/RTCP, permite mantener una conversación entre dos o más 
+personas como un de teléfono. La aplicación tiene una arquitectura abierta y 
+modular, que permite extender sus funcionalidades con tres tipos de 
+extensiones: E/S de audio, efectos sobre audio y codecs de compresión de voz. 
+El programa es multisesión, es decir, puede mantener varias conversaciones 
+activas simultáneamente, con o sin redes multicast. También está preparado para 
+soportar IPv6, la próxima generación IP.
+
+Ha sido desarrollado con Glib-2.0 lo que garantiza que el sistema es portable 
+entre plataformas Unix e incluso -con pequeñas modificaciones- a plataformas MS 
+Windows. La GUI se ha desarrollado en GTK+2.0, es totalmente intuitiva, permite 
+mostrar una imagen del usuario con el que está dialogando y dispone de una 
+agenda en XML en la que gestionar los contactos.
+
+
+
+Keywords/Palabras clave:
+VoIP, RTP/RTCP, Linux, OSS, C, Glib/GTK+, multiconferecing, IPv6, multicast, plugins
+
